@@ -1,19 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/Note-Category/note-category.dart';
-import 'package:law_diary/main.dart';
-
-import '../API/api.dart';
-import '../common.dart';
+import 'package:law_diary/common.dart';
 
 class CreateCategory extends StatefulWidget {
-  String userId;
-  CreateCategory({super.key, required this.userId});
+  const CreateCategory({super.key});
 
   @override
   State<CreateCategory> createState() => _CreateCategoryState();
@@ -35,9 +30,7 @@ class _CreateCategoryState extends State<CreateCategory> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => NoteCategoryScreen(
-                  userId: widget.userId,
-                ),
+                builder: (context) => const NoteCategoryScreen(),
               ),
             );
           },
@@ -50,15 +43,45 @@ class _CreateCategoryState extends State<CreateCategory> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              if (_categorynameController.text == "") {
+                showToast(context, "ခေါင်းစဉ်ထည့်ပါ!!", Colors.red);
+              } else {
+                setState(() {
+                  createNoteCategory();
+                });
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 6, 5, 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
+                  child: isLoading
+                      ? SpinKitRing(
+                          size: 23,
+                          lineWidth: 3,
+                          color: maincolor,
+                        )
+                      : Text(
+                          'Done',
+                          style: GoogleFonts.poppins(
+                              fontSize: 15, fontWeight: FontWeight.w400),
+                        ),
+                ),
+              ),
+            ),
+          )
+        ],
       ),
       body: WillPopScope(
         onWillPop: () async {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NoteCategoryScreen(
-                userId: widget.userId,
-              ),
+              builder: (context) => const NoteCategoryScreen(),
             ),
           );
           return false;
@@ -83,6 +106,8 @@ class _CreateCategoryState extends State<CreateCategory> {
                   child: TextFormField(
                     style: TextStyle(color: backcolor),
                     keyboardType: TextInputType.name,
+                    minLines: 1,
+                    maxLines: 10,
                     decoration: InputDecoration(
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: fifthcolor),
@@ -102,43 +127,43 @@ class _CreateCategoryState extends State<CreateCategory> {
             const SizedBox(
               height: 30,
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width - 30,
-                height: MediaQuery.of(context).size.height * 0.06,
-                child: MaterialButton(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  color: darkmain,
-                  onPressed: () {
-                    if (_categorynameController.text == "") {
-                      showToast(context, "ခေါင်းစဉ်ထည့်ပါ!!", Colors.red);
-                    } else {
-                      setState(() {
-                        createNoteCategory(widget.userId);
-                      });
-                    }
-                  },
-                  child: isLoading
-                      ?  SpinKitRing(
-                          size: 23,
-                          lineWidth: 3,
-                          color: seccolor,
-                        )
-                      : Text(
-                          'Create',
-                          style: GoogleFonts.poppins(
-                            color: seccolor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(top: 20.0),
+            //   child: SizedBox(
+            //     width: MediaQuery.of(context).size.width - 30,
+            //     height: MediaQuery.of(context).size.height * 0.06,
+            //     child: MaterialButton(
+            //       elevation: 0,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(6),
+            //       ),
+            //       color: darkmain,
+            //       onPressed: () {
+            //         if (_categorynameController.text == "") {
+            //           showToast(context, "ခေါင်းစဉ်ထည့်ပါ!!", Colors.red);
+            //         } else {
+            //           setState(() {
+            //             createNoteCategory();
+            //           });
+            //         }
+            //       },
+            //       child: isLoading
+            //           ? SpinKitRing(
+            //               size: 23,
+            //               lineWidth: 3,
+            //               color: seccolor,
+            //             )
+            //           : Text(
+            //               'Create',
+            //               style: GoogleFonts.poppins(
+            //                 color: seccolor,
+            //                 fontSize: 20,
+            //                 fontWeight: FontWeight.w500,
+            //               ),
+            //             ),
+            //     ),
+            //   ),
+            // ),
             const SizedBox(
               height: 30,
             ),
@@ -148,10 +173,9 @@ class _CreateCategoryState extends State<CreateCategory> {
     );
   }
 
-  createNoteCategory(userId) async {
+  createNoteCategory() async {
     isLoading = true;
     final response = await API().createNoteCategoryApi(
-      userId,
       _categorynameController.text,
     );
     print("hererere");
@@ -165,9 +189,7 @@ class _CreateCategoryState extends State<CreateCategory> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => NoteCategoryScreen(
-            userId: widget.userId,
-          ),
+          builder: (context) => const NoteCategoryScreen(),
         ),
       );
     } else if (response.statusCode == 400) {

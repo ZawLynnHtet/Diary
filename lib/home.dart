@@ -1,23 +1,16 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/Books/books.dart';
 import 'package:law_diary/Diary/daily_diary.dart';
-import 'package:law_diary/Law-Category/create-law-category.dart';
-import 'package:law_diary/Law-Category/law-category.dart';
 import 'package:law_diary/Note-Category/note-category.dart';
+import 'package:law_diary/User/logregistertest.dart';
 import 'package:law_diary/common.dart';
-import 'package:law_diary/Notes/notes.dart';
-import 'package:law_diary/main.dart';
+import 'package:law_diary/drawer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
-  String userId;
-  HomeScreen({super.key, required this.userId});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -29,11 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
     var size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F3),
-      // appBar: AppBar(
-      //   backgroundColor: const Color(0xFFF5F5F3),
-      //   elevation: 0,
-      //   automaticallyImplyLeading: false,
-      // ),
+      appBar: AppBar(
+        backgroundColor: fourthcolor,
+        elevation: 0,
+      ),
+      drawer: const DrawerPage(),
       body: WillPopScope(
         onWillPop: () async {
           SystemNavigator.pop();
@@ -42,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           children: [
             Container(
-              height: size.height * .45,
+              height: size.height * .4,
               decoration: BoxDecoration(
                 color: fourthcolor,
               ),
@@ -64,6 +57,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                    // Container(
+                    //   margin: const EdgeInsets.symmetric(vertical: 40),
+                    //   alignment: Alignment.topLeft,
+                    //   child: Text(
+                    //     'Log Out',
+                    //     style: GoogleFonts.poppins(
+                    //       color: maincolor,
+                    //       fontSize: 25,
+                    //       fontWeight: FontWeight.w900,
+                    //     ),
+                    //   ),
+                    // ),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 20),
                       alignment: Alignment.topLeft,
@@ -85,13 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      DailyDiary(userId: widget.userId),
-                                ),
-                              );
+                              setState(() {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const DailyDiaryPage(),
+                                  ),
+                                );
+                              });
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -102,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: fourthcolor,
                                     spreadRadius: 1,
                                     blurRadius: 3,
-                                    offset: const Offset(0, 1),
+                                    offset: const Offset(0, 0),
                                   ),
                                 ],
                               ),
@@ -111,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Container(
                                     child: Image.asset(
                                       'images/diary.png',
-                                      height: 100,
+                                      height: 120,
                                       width: 100,
                                     ),
                                   ),
@@ -130,9 +137,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => NoteCategoryScreen(
-                                    userId: widget.userId,
-                                  ),
+                                  builder: (context) =>
+                                      const NoteCategoryScreen(),
                                 ),
                               );
                             },
@@ -145,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: fourthcolor,
                                     spreadRadius: 1,
                                     blurRadius: 3,
-                                    offset: const Offset(0, 1),
+                                    offset: const Offset(0, 0),
                                   ),
                                 ],
                               ),
@@ -154,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Container(
                                     child: Image.asset(
                                       'images/notes.png',
-                                      height: 100,
+                                      height: 120,
                                       width: 200,
                                     ),
                                   ),
@@ -186,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: fourthcolor,
                                     spreadRadius: 1,
                                     blurRadius: 3,
-                                    offset: const Offset(0, 1),
+                                    offset: const Offset(0, 0),
                                   ),
                                 ],
                               ),
@@ -195,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Container(
                                     child: Image.asset(
                                       'images/books.png',
-                                      height: 100,
+                                      height: 120,
                                       width: 200,
                                     ),
                                   ),
@@ -220,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: fourthcolor,
                                     spreadRadius: 1,
                                     blurRadius: 3,
-                                    offset: const Offset(0, 1),
+                                    offset: const Offset(0, 0),
                                   ),
                                 ],
                               ),
@@ -240,6 +246,33 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
+                          // GestureDetector(
+                          //   onTap: () async {
+                          //     final prefs =
+                          //         await SharedPreferences.getInstance();
+                          //     await prefs.clear();
+                          //     setState(() {
+                          //       Navigator.pushReplacement(
+                          //         context,
+                          //         MaterialPageRoute(
+                          //           builder: (context) => const LogRegister(),
+                          //         ),
+                          //       );
+                          //     });
+                          //   },
+                          //   child: Container(
+                          //     margin: const EdgeInsets.symmetric(vertical: 10),
+                          //     alignment: Alignment.bottomRight,
+                          //     child: Text(
+                          //       'Log Out',
+                          //       style: GoogleFonts.poppins(
+                          //         color: seccolor,
+                          //         fontSize: 16,
+                          //         fontWeight: FontWeight.w900,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),

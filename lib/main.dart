@@ -1,8 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:law_diary/User/logregister.dart';
-
-import 'home.dart';
+import 'package:law_diary/User/logregistertest.dart';
+import 'package:law_diary/home.dart';
+import 'package:law_diary/splash.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +19,9 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       title: 'Law Diary',
       debugShowCheckedModeBanner: false,
-      // home: LogRegister(),
-      home: LogRegister(),
+      home: Splash(),
+      // home: HomeScreen(),
+      // home: FirebaseAuth.instance.currentUser == null? const LogRegister(): Main(userId: '',),
     );
-    
   }
 }

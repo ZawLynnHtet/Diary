@@ -1,26 +1,19 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/Notes/notes.dart';
 import 'package:law_diary/common.dart';
 
-import '../API/api.dart';
-
 class EditNote extends StatefulWidget {
-  String categoryId;
-  String editData;
-  String userId;
-  EditNote(
-      {super.key,
-      required this.categoryId,
-      required this.editData,
-      required this.userId});
+  final String categoryId;
+  final String editData;
+  const EditNote({
+    super.key,
+    required this.categoryId,
+    required this.editData,
+  });
 
   @override
   State<EditNote> createState() => _EditNoteState();
@@ -66,7 +59,6 @@ class _EditNoteState extends State<EditNote> {
               context,
               MaterialPageRoute(
                 builder: (context) => NotesScreen(
-                  userId: widget.userId,
                   categoryId: widget.categoryId,
                 ),
               ),
@@ -81,6 +73,38 @@ class _EditNoteState extends State<EditNote> {
             fontWeight: FontWeight.bold,
           ),
         ),
+         actions: [
+          GestureDetector(
+            onTap: () {
+              if (_titleController.text.isEmpty) {
+                        showToast(context, 'Please Enter Title!!', Colors.red);
+                      } else if (_noteController.text.isEmpty) {
+                        showToast(context, 'Please Enter Note!!', Colors.red);
+                      } else {
+                        updateNote();
+                      }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 6, 5, 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
+                  child: isLoading
+                      ? SpinKitRing(
+                          size: 23,
+                          lineWidth: 3,
+                          color: maincolor,
+                        )
+                      : Text(
+                          'Edit',
+                          style: GoogleFonts.poppins(
+                              fontSize: 15, fontWeight: FontWeight.w400),
+                        ),
+                ),
+              ),
+            ),
+          )
+        ],
       ),
       body: WillPopScope(
         onWillPop: () async {
@@ -88,7 +112,6 @@ class _EditNoteState extends State<EditNote> {
             context,
             MaterialPageRoute(
               builder: (context) => NotesScreen(
-                userId: widget.userId,
                 categoryId: widget.categoryId,
               ),
             ),
@@ -174,43 +197,43 @@ class _EditNoteState extends State<EditNote> {
               const SizedBox(
                 height: 15,
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 30,
-                  height: MediaQuery.of(context).size.height * 0.06,
-                  child: MaterialButton(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    color: btncolor,
-                    // onPressed: uploadFile,
-                    onPressed: () {
-                      if (_titleController.text.isEmpty) {
-                        showToast(context, 'Please Enter Title!!', Colors.red);
-                      } else if (_noteController.text.isEmpty) {
-                        showToast(context, 'Please Enter Note!!', Colors.red);
-                      } else {
-                        updateNote(widget.userId);
-                      }
-                    },
-                    child: isLoading
-                        ? const SpinKitRing(
-                            size: 23,
-                            lineWidth: 3,
-                            color: Colors.black,
-                          )
-                        : Text(
-                            'Update',
-                            style: GoogleFonts.poppins(
-                                color: seccolor,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500),
-                          ),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 20.0),
+              //   child: SizedBox(
+              //     width: MediaQuery.of(context).size.width - 30,
+              //     height: MediaQuery.of(context).size.height * 0.06,
+              //     child: MaterialButton(
+              //       elevation: 0,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(6),
+              //       ),
+              //       color: btncolor,
+              //       // onPressed: uploadFile,
+              //       onPressed: () {
+              //         if (_titleController.text.isEmpty) {
+              //           showToast(context, 'Please Enter Title!!', Colors.red);
+              //         } else if (_noteController.text.isEmpty) {
+              //           showToast(context, 'Please Enter Note!!', Colors.red);
+              //         } else {
+              //           updateNote();
+              //         }
+              //       },
+              //       child: isLoading
+              //           ? const SpinKitRing(
+              //               size: 23,
+              //               lineWidth: 3,
+              //               color: Colors.black,
+              //             )
+              //           : Text(
+              //               'Update',
+              //               style: GoogleFonts.poppins(
+              //                   color: seccolor,
+              //                   fontSize: 20,
+              //                   fontWeight: FontWeight.w500),
+              //             ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(
                 height: 30,
               ),
@@ -221,10 +244,9 @@ class _EditNoteState extends State<EditNote> {
     );
   }
 
-  updateNote(userId) async {
+  updateNote() async {
     isLoading = true;
     final response = await API().editNoteApi(
-      userId,
       editData["noteId"].toString(),
       _titleController.text,
       _noteController.text,
@@ -241,7 +263,6 @@ class _EditNoteState extends State<EditNote> {
         MaterialPageRoute(
           builder: (context) => NotesScreen(
             categoryId: widget.categoryId,
-            userId: widget.userId,
           ),
         ),
       );

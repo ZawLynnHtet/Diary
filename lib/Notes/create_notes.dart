@@ -1,24 +1,17 @@
 import 'dart:convert';
-// import 'dart:html';
-import 'dart:math';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
-// import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:law_diary/main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../API/api.dart';
-import '../common.dart';
+import 'package:law_diary/API/api.dart';
+import 'package:law_diary/common.dart';
 import 'notes.dart';
 
 class CreateNote extends StatefulWidget {
-  String categoryId;
-  String userId;
-
-  CreateNote({super.key, required this.categoryId, required this.userId});
+  final String categoryId;
+  const CreateNote({super.key, required this.categoryId});
 
   @override
   State<CreateNote> createState() => _CreateNoteState();
@@ -27,7 +20,7 @@ class CreateNote extends StatefulWidget {
 class _CreateNoteState extends State<CreateNote> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-   String date = DateTime.now().toString();
+  String date = DateTime.now().toString();
   bool isLoading = false;
   var imagefile;
   var imagevalue;
@@ -50,7 +43,7 @@ class _CreateNoteState extends State<CreateNote> {
       uploadTask.whenComplete(() async {
         var imageURL = await ref.getDownloadURL();
         print("><< image url $imageURL");
-        createNote(widget.userId, imageURL);
+        createNote(imageURL);
       });
     });
   }
@@ -83,7 +76,6 @@ class _CreateNoteState extends State<CreateNote> {
               context,
               MaterialPageRoute(
                 builder: (context) => NotesScreen(
-                  userId: widget.userId,
                   categoryId: widget.categoryId,
                 ),
               ),
@@ -98,6 +90,38 @@ class _CreateNoteState extends State<CreateNote> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              if (_titleController.text == "") {
+                showToast(context, "ခေါင်းစဉ်ထည့်ပါ", Colors.red);
+              } else {
+                setState(() {
+                  uploadFile();
+                });
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 6, 5, 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
+                  child: isLoading
+                      ? SpinKitRing(
+                          size: 23,
+                          lineWidth: 3,
+                          color: maincolor,
+                        )
+                      : Text(
+                          'Done',
+                          style: GoogleFonts.poppins(
+                              fontSize: 15, fontWeight: FontWeight.w400),
+                        ),
+                ),
+              ),
+            ),
+          )
+        ],
       ),
       body: WillPopScope(
         onWillPop: () async {
@@ -105,7 +129,6 @@ class _CreateNoteState extends State<CreateNote> {
             context,
             MaterialPageRoute(
               builder: (context) => NotesScreen(
-                userId: widget.userId,
                 categoryId: widget.categoryId,
               ),
             ),
@@ -122,30 +145,23 @@ class _CreateNoteState extends State<CreateNote> {
                   bottom: 10,
                   left: 15,
                 ),
-                child: Container(
-                  // decoration: BoxDecoration(
-                  //   color: Colors.white,
-                  //   border: Border.all(color: Colors.black),
-                  //   borderRadius: BorderRadius.circular(12),
-                  // ),
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 5),
-                    child: TextFormField(
-                      style: TextStyle(color: backcolor),
-                      keyboardType: TextInputType.name,
-                      decoration: InputDecoration(
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: fifthcolor),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: fifthcolor),
-                        ),
-                        labelText: 'ခေါင်းစဉ်',
-                        labelStyle: TextStyle(color: fifthcolor),
-                        // border: InputBorder.none,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: TextFormField(
+                    style: TextStyle(color: backcolor),
+                    keyboardType: TextInputType.name,
+                    decoration: InputDecoration(
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: fifthcolor),
                       ),
-                      controller: _titleController,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: fifthcolor),
+                      ),
+                      labelText: 'ခေါင်းစဉ်',
+                      labelStyle: TextStyle(color: fifthcolor),
+                      // border: InputBorder.none,
                     ),
+                    controller: _titleController,
                   ),
                 ),
               ),
@@ -169,6 +185,8 @@ class _CreateNoteState extends State<CreateNote> {
                     child: TextFormField(
                       style: TextStyle(color: backcolor),
                       keyboardType: TextInputType.name,
+                      minLines: 1,
+                      maxLines: 20,
                       decoration: InputDecoration(
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: fifthcolor),
@@ -212,42 +230,42 @@ class _CreateNoteState extends State<CreateNote> {
               const SizedBox(
                 height: 30,
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 30,
-                  height: MediaQuery.of(context).size.height * 0.06,
-                  child: MaterialButton(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    color: darkmain,
-                    onPressed: () {
-                      if (_titleController.text == "") {
-                        showToast(context, "ခေါင်းစဉ်ထည့်ပါ", Colors.red);
-                      } else {
-                        setState(() {
-                          uploadFile();
-                        });
-                      }
-                    },
-                    child: isLoading
-                        ?  SpinKitRing(
-                            size: 23,
-                            lineWidth: 3,
-                            color: seccolor,
-                          )
-                        : Text(
-                            'Create',
-                            style: GoogleFonts.poppins(
-                                color: seccolor,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500),
-                          ),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 20.0),
+              //   child: SizedBox(
+              //     width: MediaQuery.of(context).size.width - 30,
+              //     height: MediaQuery.of(context).size.height * 0.06,
+              //     child: MaterialButton(
+              //       elevation: 0,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(6),
+              //       ),
+              //       color: darkmain,
+              //       onPressed: () {
+              //         if (_titleController.text == "") {
+              //           showToast(context, "ခေါင်းစဉ်ထည့်ပါ", Colors.red);
+              //         } else {
+              //           setState(() {
+              //             uploadFile();
+              //           });
+              //         }
+              //       },
+              //       child: isLoading
+              //           ? SpinKitRing(
+              //               size: 23,
+              //               lineWidth: 3,
+              //               color: seccolor,
+              //             )
+              //           : Text(
+              //               'Create',
+              //               style: GoogleFonts.poppins(
+              //                   color: seccolor,
+              //                   fontSize: 20,
+              //                   fontWeight: FontWeight.w500),
+              //             ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(
                 height: 30,
               ),
@@ -258,10 +276,9 @@ class _CreateNoteState extends State<CreateNote> {
     );
   }
 
-  createNote(userId, attachment) async {
+  createNote(attachment) async {
     isLoading = true;
     final response = await API().createNoteApi(
-      userId,
       widget.categoryId,
       _titleController.text,
       _noteController.text,
@@ -279,7 +296,6 @@ class _CreateNoteState extends State<CreateNote> {
         MaterialPageRoute(
           builder: (context) => NotesScreen(
             categoryId: widget.categoryId,
-            userId: widget.userId,
           ),
         ),
       );

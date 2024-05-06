@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/API/api.dart';
@@ -12,15 +10,14 @@ import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DailyDiary extends StatefulWidget {
-  String userId;
-  DailyDiary({super.key, required this.userId});
+class DailyDiaryPage extends StatefulWidget {
+  const DailyDiaryPage({super.key});
 
   @override
-  State<DailyDiary> createState() => _DailyDiaryState();
+  State<DailyDiaryPage> createState() => _DailyDiaryPageState();
 }
 
-class _DailyDiaryState extends State<DailyDiary> {
+class _DailyDiaryPageState extends State<DailyDiaryPage> {
   List<diarylistmodel> mydiary = [];
   diarylistmodel? selecteddiary;
 
@@ -30,7 +27,7 @@ class _DailyDiaryState extends State<DailyDiary> {
   getdiary() async {
     isLoading = true;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final response = await API().getAllDiariesApi(widget.userId);
+    final response = await API().getAllDiariesApi();
     final res = jsonDecode(response.body);
     print('_____________>>>>>>>>>>>>>>>response body ${res}');
     print('>>>>>>>>>>>>>>>>>>>>>>$response');
@@ -56,7 +53,6 @@ class _DailyDiaryState extends State<DailyDiary> {
         setState(() {
           mydiary = [];
         });
-
         showToast(context, res['message'], Colors.red);
       }
     }
@@ -84,9 +80,7 @@ class _DailyDiaryState extends State<DailyDiary> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeScreen(
-                  userId: widget.userId,
-                ),
+                builder: (context) => const HomeScreen(),
               ),
             );
           },
@@ -102,12 +96,10 @@ class _DailyDiaryState extends State<DailyDiary> {
       ),
       body: WillPopScope(
         onWillPop: () async {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomeScreen(
-                userId: widget.userId,
-              ),
+              builder: (context) => HomeScreen(),
             ),
           );
           return false;
@@ -128,21 +120,21 @@ class _DailyDiaryState extends State<DailyDiary> {
                     ),
                   ))
                 : SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: Container(
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
-                        child: ListView.builder(
-                          itemCount: mydiary.length,
-                          itemBuilder: (context, i) {
-                            return DiaryModel(
-                                eachdiary: mydiary[i], userId: widget.userId);
-                          },
-                        ),
+                    child: Column(
+                    children: [
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: mydiary.length,
+                        itemBuilder: (context, i) {
+                          return DiaryModel(eachdiary: mydiary[i]);
+                        },
                       ),
-                    ),
-                  ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                    ],
+                  )),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: darkmain,
@@ -150,7 +142,7 @@ class _DailyDiaryState extends State<DailyDiary> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateDiary(userId: widget.userId),
+              builder: (context) => const CreateDiary(),
             ),
           );
         },
@@ -165,9 +157,11 @@ class _DailyDiaryState extends State<DailyDiary> {
 }
 
 class DiaryModel extends StatefulWidget {
-  diarylistmodel eachdiary;
-  String userId;
-  DiaryModel({super.key, required this.eachdiary, required this.userId});
+  final diarylistmodel eachdiary;
+  const DiaryModel({
+    super.key,
+    required this.eachdiary,
+  });
 
   @override
   State<DiaryModel> createState() => _DiaryModelState();
@@ -272,14 +266,13 @@ class _DiaryModelState extends State<DiaryModel> {
           MaterialPageRoute(
             builder: (context) => DiaryDetails(
               diaryId: widget.eachdiary.diaryId,
-              userId: widget.userId,
             ),
           ),
         );
       },
       child: Padding(
         padding:
-            const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+            const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
         child: Container(
           decoration: BoxDecoration(
             color: fourthcolor,
@@ -421,15 +414,22 @@ class _DiaryModelState extends State<DiaryModel> {
 
       print('>>>>>>>>>>>>>>>>>>>>>>>');
       // ignore: use_build_context_synchronously
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DailyDiary(
-              userId: widget.userId,
-            ),
-          ),
-          (route) => false);
-      showToast(context, res['message'], Colors.green);
+      // Navigator.pushAndRemoveUntil(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (context) => DailyDiaryPage(
+      //         userId: widget.userId,
+      //       ),
+      //     ),
+      //     (route) => false);
+      // showToast(context, res['message'], Colors.green);
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DailyDiaryPage(),
+        ),
+      );
     } else if (response.statusCode == 400) {
       // ignore: use_build_context_synchronously
       Navigator.pop(context);

@@ -2,25 +2,19 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:law_diary/API/api.dart';
+import 'package:law_diary/API/model.dart';
 import 'package:law_diary/Note-Category/note-category.dart';
 import 'package:law_diary/Notes/create_notes.dart';
 import 'package:law_diary/Notes/edit_note.dart';
+import 'package:law_diary/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../API/api.dart';
-import '../API/model.dart';
-import '../common.dart';
-import '../home.dart';
-
 class NotesScreen extends StatefulWidget {
-  String categoryId;
-  String userId;
-  NotesScreen({super.key, required this.categoryId, required this.userId});
+  final String categoryId;
+  const NotesScreen({super.key, required this.categoryId});
 
   @override
   State<NotesScreen> createState() => _NotesScreenState();
@@ -90,9 +84,7 @@ class _NotesScreenState extends State<NotesScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => NoteCategoryScreen(
-                  userId: widget.userId,
-                ),
+                builder: (context) => const NoteCategoryScreen(),
               ),
             );
           },
@@ -125,6 +117,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0.0),
                     child: Container(
+                      color: Colors.transparent,
                       height: MediaQuery.of(context).size.height,
                       width: MediaQuery.of(context).size.width,
                       child: ListView.builder(
@@ -132,7 +125,6 @@ class _NotesScreenState extends State<NotesScreen> {
                         itemBuilder: (context, i) {
                           return NoteModel(
                             eachnote: mynote[i],
-                            userId: widget.userId,
                           );
                         },
                       ),
@@ -147,7 +139,6 @@ class _NotesScreenState extends State<NotesScreen> {
             MaterialPageRoute(
               builder: (context) => CreateNote(
                 categoryId: widget.categoryId,
-                userId: widget.userId,
               ),
             ),
           );
@@ -166,9 +157,8 @@ class _NotesScreenState extends State<NotesScreen> {
 }
 
 class NoteModel extends StatefulWidget {
-  notelistmodel eachnote;
-  String userId;
-  NoteModel({super.key, required this.eachnote, required this.userId});
+  final notelistmodel eachnote;
+  const NoteModel({super.key, required this.eachnote});
 
   @override
   State<NoteModel> createState() => _NoteModelState();
@@ -212,7 +202,6 @@ class _NoteModelState extends State<NoteModel> {
               builder: (context) => EditNote(
                 editData: mydata,
                 categoryId: widget.eachnote.categoryId,
-                userId: widget.userId,
               ),
             ),
           );
@@ -364,7 +353,6 @@ class _NoteModelState extends State<NoteModel> {
           MaterialPageRoute(
             builder: (context) => NotesScreen(
               categoryId: widget.eachnote.categoryId,
-              userId: widget.userId,
             ),
           ),
         );

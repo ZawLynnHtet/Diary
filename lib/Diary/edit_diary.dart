@@ -1,22 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/Diary/diary_details.dart';
-import 'package:law_diary/Note-Category/note-category.dart';
-
-import '../API/api.dart';
-import '../common.dart';
+import 'package:law_diary/common.dart';
 
 class EditDiary extends StatefulWidget {
-  String diaryId;
-  String editData;
-  String userId;
-  EditDiary({super.key, required this.editData, required this.userId, required this.diaryId});
+  final String diaryId;
+  final String editData;
+  const EditDiary({
+    super.key,
+    required this.editData,
+    required this.diaryId,
+  });
 
   @override
   State<EditDiary> createState() => _EditDiaryState();
@@ -325,8 +324,8 @@ class _EditDiaryState extends State<EditDiary> {
     // print(_caseController.text);
     isLoading = true;
     final response = await API().editDetailsDiaryApi(
+      editData["detailsId"],
       widget.diaryId,
-      editData["detailsId"].toString(),
       _startdateController.text,
       _appointmentController.text,
       _actionsController.text,
@@ -337,7 +336,7 @@ class _EditDiaryState extends State<EditDiary> {
     var res = jsonDecode(response.body);
     print(">>>>>>>>>>> edit diary response statusCode ${response.statusCode}");
     print(">>>>>>>>>>> edit diary response body ${response.body}");
-    print(editData['diaryId']);
+    print(editData['detailsId']);
     if (response.statusCode == 200) {
       print("herer 0--");
       // ignore: use_build_context_synchronously
@@ -345,9 +344,7 @@ class _EditDiaryState extends State<EditDiary> {
         context,
         MaterialPageRoute(
           builder: (context) => DiaryDetails(
-            userId: widget.userId,
             diaryId: editData["diaryId"],
-          
           ),
         ),
       );

@@ -1,14 +1,12 @@
 import 'dart:convert';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:law_diary/User/logregister.dart';
+import 'package:law_diary/API/api.dart';
+import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
-import 'package:law_diary/main.dart';
-
-import '../API/api.dart';
-import '../common.dart';
-import 'login_screen.dart';
+import 'package:law_diary/User/logregister.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,10 +18,24 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscureText = true;
   bool isLoading = false;
+
+  FirebaseAuth auth = FirebaseAuth.instance;
+  User? currentUser;
+
+  userAuth() {
+    currentUser = auth.currentUser;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {});
+    userAuth();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +82,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 Column(
                   children: [
+                    const SizedBox(
+                      height: 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: btncolor,
+                          border: Border.all(color: Colors.black),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20),
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Name',
+                            ),
+                            controller: _nameController,
+                            validator: (value) {
+                              return value!.isEmpty
+                                  ? 'Please enter Name?'
+                                  : null;
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(
                       height: 30,
                     ),
@@ -142,16 +182,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 30,
                     ),
                     GestureDetector(
-                      onTap: () {
-                        if (_emailController.text == "") {
-                          showToast(context, "Enter Email", Colors.red);
-                        } else if (_passwordController.text == "") {
-                          showToast(context, "Enter Password", Colors.red);
-                        } else {
-                          setState(() {
-                            register();
-                          });
+                      onTap: () async {
+                        try {
+                          final credential =
+                              await auth.createUserWithEmailAndPassword(
+                            email: _emailController.text,
+                            password: _passwordController.text,
+                          );
+                        } on FirebaseAuthException catch (e) {
+                          if (e.code == 'weak-password') {
+                            print('The password provided is too weak.');
+                          } else if (e.code == 'email-already-in-use') {
+                            print('The account already exists for that email.');
+                          }
+                        } catch (e) {
+                          print(e);
+                        } finally {
+                          FirebaseAuth.instance.currentUser!
+                              .sendEmailVerification();
+                          debugPrint('email verification');
+                          register();
                         }
+                        setState(() {});
+                        // if (_emailController.text == "") {
+                        //   showToast(context, "Enter Email", Colors.red);
+                        // } else if (_passwordController.text == "") {
+                        //   showToast(context, "Enter Password", Colors.red);
+                        // } else {
+                        //   setState(() {
+                        // register();
+                        //   });
+                        // }
                       },
                       child: Container(
                         width: MediaQuery.of(context).size.width,
@@ -160,7 +221,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: btncolor,
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        margin: const EdgeInsets.only(left: 20, right: 20),
+                        margin: const EdgeInsets.only(left: 25, right: 25),
                         child: Center(
                           child: isLoading
                               ? const SpinKitRing(
@@ -191,26 +252,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   register() async {
     isLoading = true;
     final response = await API().registerUser(
-      _nameController.text,
       _emailController.text,
-      _phoneController.text,
+      _nameController.text,
       _passwordController.text,
     );
     var res = jsonDecode(response.body);
     print('>>>>>>>>>userId>>>>>>>>>><${res['user']['userId']}');
     if (response.statusCode == 200) {
       token = res["token"];
+      userID = res['user']['userId'];
+      email = res['user']['email'];
+      name = res['user']['name'];
+      try {
+        fcmtoken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        print(">>>>e fcmtoken error $e");
+        fcmtoken = "";
+      }
+      print(">>>>. firebase fcm token 2 $fcmtoken");
       // ignore: use_build_context_synchronously
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(
-            userId: res['user']['userId'],
-          ),
+          builder: (context) => const HomeScreen(),
         ),
       );
       showToast(context, res['message'], Colors.green);
-    } else if (response.statusCode == 404) {
+    } else if (response.statusCode != 200) {
       showToast(context, res['message'], Colors.red);
     }
     setState(() {

@@ -1,14 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:law_diary/API/api.dart';
 import 'package:law_diary/common.dart';
 import 'package:path_provider/path_provider.dart';
 

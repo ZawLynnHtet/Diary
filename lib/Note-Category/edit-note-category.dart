@@ -1,20 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/Note-Category/note-category.dart';
-import 'package:law_diary/Notes/notes.dart';
-
-import '../API/api.dart';
-import '../common.dart';
+import 'package:law_diary/common.dart';
 
 class EditNoteCategory extends StatefulWidget {
-  String editData;
-  String userId;
-  EditNoteCategory({super.key, required this.editData, required this.userId});
+  final String editData;
+  const EditNoteCategory({super.key, required this.editData});
 
   @override
   State<EditNoteCategory> createState() => _EditNoteCategoryState();
@@ -29,9 +24,6 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
     print(">>>>>> editdata");
     editData = jsonDecode(widget.editData);
     print(">>>>>>>>>>>> edit data $editData");
-    // print("Id ${editData["categoryId"]}");
-    // print("Id ${editData.categoryId}");
-
     setState(() {
       if (editData != null) {
         _categorynameController.text = editData["categoryName"] ?? '';
@@ -55,10 +47,10 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
         leading: BackButton(
           color: darkmain,
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => NoteCategoryScreen(userId: widget.userId),
+                builder: (context) => const NoteCategoryScreen(),
               ),
             );
           },
@@ -71,13 +63,43 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          GestureDetector(
+            onTap: () {
+              if (_categorynameController.text.isEmpty) {
+                showToast(context, 'Please Enter Category Name!!', Colors.red);
+              } else {
+                updateNoteCategory();
+              }
+            },
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 6, 5, 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
+                  child: isLoading
+                      ? SpinKitRing(
+                          size: 23,
+                          lineWidth: 3,
+                          color: maincolor,
+                        )
+                      : Text(
+                          'Edit',
+                          style: GoogleFonts.poppins(
+                              fontSize: 15, fontWeight: FontWeight.w400),
+                        ),
+                ),
+              ),
+            ),
+          )
+        ],
       ),
       body: WillPopScope(
         onWillPop: () async {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => NoteCategoryScreen(userId: widget.userId),
+              builder: (context) => const NoteCategoryScreen(),
             ),
           );
           return false;
@@ -93,18 +115,27 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
                   left: 15,
                 ),
                 child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.black),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  // decoration: BoxDecoration(
+                  //   color: Colors.white,
+                  //   border: Border.all(color: Colors.black),
+                  //   borderRadius: BorderRadius.circular(12),
+                  // ),
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 20),
+                    padding: const EdgeInsets.only(left: 5),
                     child: TextFormField(
+                      style: TextStyle(color: backcolor),
                       keyboardType: TextInputType.name,
-                      decoration: const InputDecoration(
-                        hintText: 'Enter Category Name',
-                        border: InputBorder.none,
+                      maxLines: 2,
+                      decoration: InputDecoration(
+                        enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: fifthcolor),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: fifthcolor),
+                        ),
+                        labelText: 'ခေါင်းစဉ်',
+                        labelStyle: TextStyle(color: fifthcolor),
+                        // border: InputBorder.none,
                       ),
                       controller: _categorynameController,
                     ),
@@ -114,41 +145,41 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
               const SizedBox(
                 height: 15,
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 30,
-                  height: MediaQuery.of(context).size.height * 0.06,
-                  child: MaterialButton(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    color: darkmain,
-                    onPressed: () {
-                      if (_categorynameController.text.isEmpty) {
-                        showToast(context, 'Please Enter Category Name!!',
-                            Colors.red);
-                      } else {
-                        updateNoteCategory(widget.userId);
-                      }
-                    },
-                    child: isLoading
-                        ? const SpinKitRing(
-                            size: 23,
-                            lineWidth: 3,
-                            color: Colors.black,
-                          )
-                        : Text(
-                            'Update',
-                            style: GoogleFonts.poppins(
-                                color: maincolor,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500),
-                          ),
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 20.0),
+              //   child: SizedBox(
+              //     width: MediaQuery.of(context).size.width - 30,
+              //     height: MediaQuery.of(context).size.height * 0.06,
+              //     child: MaterialButton(
+              //       elevation: 0,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(6),
+              //       ),
+              //       color: darkmain,
+              //       onPressed: () {
+              //         if (_categorynameController.text.isEmpty) {
+              //           showToast(context, 'Please Enter Category Name!!',
+              //               Colors.red);
+              //         } else {
+              //           updateNoteCategory();
+              //         }
+              //       },
+              //       child: isLoading
+              //           ? const SpinKitRing(
+              //               size: 23,
+              //               lineWidth: 3,
+              //               color: Colors.black,
+              //             )
+              //           : Text(
+              //               'Update',
+              //               style: GoogleFonts.poppins(
+              //                   color: maincolor,
+              //                   fontSize: 20,
+              //                   fontWeight: FontWeight.w500),
+              //             ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(
                 height: 30,
               ),
@@ -159,10 +190,9 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
     );
   }
 
-  updateNoteCategory(userId) async {
+  updateNoteCategory() async {
     isLoading = true;
     final response = await API().editNoteCategoryApi(
-      userId,
       editData["categoryId"].toString(),
       _categorynameController.text,
     );
@@ -174,12 +204,10 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
     if (response.statusCode == 200) {
       print("herer 0--");
       // ignore: use_build_context_synchronously
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => NoteCategoryScreen(
-            userId: widget.userId,
-          ),
+          builder: (context) => const NoteCategoryScreen(),
         ),
       );
       showToast(context, res['message'], Colors.green);

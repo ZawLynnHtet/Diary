@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
-
 Color seccolor = Colors.black;
 
 Color fourthcolor = const Color.fromARGB(255, 42, 42, 42);
@@ -15,11 +13,15 @@ Color maincolor = const Color(0xFFffffff);
 
 Color darkmain = const Color.fromARGB(255, 146, 121, 97);
 
-Color backcolor = const  Color(0xFFF5F5F3);
+Color backcolor = const Color(0xFFF5F5F3);
 
 Color btncolor = const Color.fromARGB(255, 219, 213, 213);
 
-
+var fcmtoken;
+String token = "";
+String userID = "";
+String email = "";
+String name = "";
 
 void showToast(BuildContext context, msg, color) {
   final scaffold = ScaffoldMessenger.of(context);
@@ -32,13 +34,8 @@ void showToast(BuildContext context, msg, color) {
   );
 }
 
-TextStyle buttonTextStyle = TextStyle(
-    color: maincolor,
-    fontSize: 15,
-    fontWeight: FontWeight.w500);
+TextStyle buttonTextStyle =
+    TextStyle(color: maincolor, fontSize: 15, fontWeight: FontWeight.w500);
 
 TextStyle firstTextstyle = GoogleFonts.poppins(
-    color: seccolor,
-    fontSize: 14,
-    fontWeight: FontWeight.w400);
-
+    color: seccolor, fontSize: 14, fontWeight: FontWeight.w400);

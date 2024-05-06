@@ -1,56 +1,64 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/API/model.dart';
 import 'package:law_diary/Note-Category/create-category.dart';
-import 'package:law_diary/Notes/create_notes.dart';
 import 'package:law_diary/Notes/notes.dart';
 import 'package:law_diary/common.dart';
-import 'package:law_diary/main.dart';
+import 'package:law_diary/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../API/api.dart';
-import '../home.dart';
 import 'edit-note-category.dart';
 
 class NoteCategoryScreen extends StatefulWidget {
-  String userId;
-  NoteCategoryScreen({super.key, required this.userId});
+  const NoteCategoryScreen({super.key});
 
   @override
   State<NoteCategoryScreen> createState() => _NoteCategoryScreenState();
 }
 
 class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
-  List<notecategorylistmodel> mycategory = [];
-  notecategorylistmodel? selectedcategory;
+  final TextEditingController _categorynameController = TextEditingController();
+  // List<notecategorylistmodel> mycategory = [];
+  List? selectedcategory;
+  List mycategory = [];
 
   bool ready = false;
   bool isLoading = false;
 
+  defCategories()async{
+    final defaultresponse = await API().getDefaultCategoryApi();
+    final defaultres = jsonDecode(defaultresponse.body);
+    List defCategory = defaultres['data'];
+      if (defaultresponse.statusCode == 200){
+        if (defCategory.isNotEmpty) {
+        for (var i = 0; i < defCategory.length; i++) {
+          mycategory.add(defCategory[i]);
+          print("mycategory++++++===$mycategory");
+        }
+      } else if (defaultresponse.statusCode == 400) {
+        mycategory = [];
+
+        showToast(context, defaultres['message'], Colors.red);
+      }
+      }
+  }
+
   getcategory() async {
     isLoading = true;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    final response = await API().getAllNotesCategoryApi(widget.userId);
+    final response = await API().getAllNotesCategoryApi();
     final res = jsonDecode(response.body);
     print('>>>>>>>>>>>>>>>>>>>>>>$response');
     if (response.statusCode == 200) {
       List categoryList = res['data'];
-      print('>>>>>>>>>>>>>>> category list$categoryList');
       if (categoryList.isNotEmpty) {
         for (var i = 0; i < categoryList.length; i++) {
-          mycategory.add(
-            notecategorylistmodel(
-              categoryId: categoryList[i]['categoryId'],
-              categoryName: categoryList[i]['categoryName'],
-            ),
-          );
+          mycategory.add(categoryList[i]);
+          print("mycategory++++++===$mycategory");
         }
       } else if (response.statusCode == 400) {
         mycategory = [];
@@ -65,6 +73,7 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
 
   @override
   void initState() {
+    defCategories();
     getcategory();
     super.initState();
   }
@@ -79,12 +88,10 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
         leading: BackButton(
           color: darkmain,
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeScreen(
-                  userId: widget.userId,
-                ),
+                builder: (context) => const HomeScreen(),
               ),
             );
           },
@@ -100,12 +107,10 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
       ),
       body: WillPopScope(
         onWillPop: () async {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomeScreen(
-                userId: widget.userId,
-              ),
+              builder: (context) => const HomeScreen(),
             ),
           );
           return false;
@@ -145,10 +150,10 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                       setState(() {
                                         print(">>>>> my data");
                                         var mydata = jsonEncode({
-                                          "categoryId":
-                                              mycategory[i].categoryId,
-                                          "categoryName":
-                                              mycategory[i].categoryName,
+                                          "categoryId": mycategory[i]
+                                              ['categoryId'],
+                                          "categoryName": mycategory[i]
+                                              ['categoryName'],
                                         });
                                         print(">>>>> my data");
                                         print(mydata);
@@ -158,7 +163,6 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                             builder: (context) =>
                                                 EditNoteCategory(
                                               editData: mydata,
-                                              userId: widget.userId,
                                             ),
                                           ),
                                         );
@@ -187,9 +191,9 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                mycategory[i].categoryId ==
-                                                        selectedcategory
-                                                            ?.categoryId
+                                                mycategory[i]['categoryId'] ==
+                                                        selectedcategory?[0]
+                                                            ['categoryId']
                                                     ? const Text(
                                                         "You have been viewing this category! Do you want to delete?",
                                                         style: TextStyle(
@@ -203,11 +207,11 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                                     : Text(
                                                         "Are You sure to delete this category?",
                                                         style: TextStyle(
-                                                            color: seccolor,
-                                                            fontSize: 15,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w500),
+                                                          color: seccolor,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
                                                       ),
                                                 const SizedBox(
                                                   height: 10,
@@ -221,10 +225,10 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                                           Navigator.pop(
                                                               context);
                                                         },
-                                                        child: Text(
-                                                          "Cancel",
+                                                        child: const Text(
+                                                          "No",
                                                           style: TextStyle(
-                                                            color: seccolor,
+                                                            color: Colors.blue,
                                                             fontSize: 14,
                                                             fontWeight:
                                                                 FontWeight.w500,
@@ -232,18 +236,19 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                                         )),
                                                     TextButton(
                                                       onPressed: () async {
-                                                        Navigator.pop(context);
+                                                        // Navigator.pop(context);
                                                         await deleteNoteCategory(
-                                                            mycategory[i]
-                                                                .categoryId);
+                                                          mycategory[i]
+                                                              ['categoryId'],
+                                                        );
                                                         setState(() {
                                                           getcategory();
                                                         });
                                                       },
-                                                      child: Text(
-                                                        'Confirm',
+                                                      child: const Text(
+                                                        'Yes',
                                                         style: TextStyle(
-                                                          color: darkmain,
+                                                          color: Colors.red,
                                                           fontSize: 14,
                                                           fontWeight:
                                                               FontWeight.w500,
@@ -268,7 +273,6 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                               ),
                               child: NoteCategoryModel(
                                 eachnotecategory: mycategory[i],
-                                userId: widget.userId,
                               ),
                             );
                           },
@@ -283,16 +287,118 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CreateCategory(
-                userId: widget.userId,
-              ),
+              builder: (context) => const CreateCategory(),
             ),
           );
         },
-        label:  Text('Add',style: GoogleFonts.poppins(color: seccolor),),
-        icon:  Icon(Icons.add,color: seccolor,),
+        label: Text(
+          'Add',
+          style: GoogleFonts.poppins(color: seccolor),
+        ),
+        icon: Icon(
+          Icons.add,
+          color: seccolor,
+        ),
       ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   backgroundColor: darkmain,
+      //   onPressed: () {
+      //     _showDialog(context);
+      //   },
+      //   label: Text(
+      //     'Add',
+      //     style: GoogleFonts.poppins(color: seccolor),
+      //   ),
+      //   icon: Icon(
+      //     Icons.add,
+      //     color: seccolor,
+      //   ),
+      // ),
     );
+  }
+
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: maincolor,
+          title: Text(
+            'Enter Category Name',
+            style: GoogleFonts.poppins(color: seccolor),
+          ),
+          content: TextFormField(
+            decoration: InputDecoration(
+              hintText: 'Enter category name',
+              hintStyle: TextStyle(color: seccolor),
+            ),
+          ),
+          actions: [
+            // ElevatedButton(
+            //   onPressed: () {
+            //     Navigator.of(context).pop();
+            //   },
+            //   child: Text(
+            //     'Cancel',
+            //     style: GoogleFonts.poppins(),
+            //   ),
+            // ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: darkmain,
+              ),
+              onPressed: () {
+                createNoteCategory();
+                // if (_categorynameController.text == "") {
+                //   showToast(context, "ခေါင်းစဉ်ထည့်ပါ!!", Colors.red);
+                // } else {
+                //   setState(() {
+                //     createNoteCategory();
+                //   });
+                // }
+              },
+              child: isLoading
+                  ? SpinKitRing(
+                      size: 23,
+                      lineWidth: 3,
+                      color: maincolor,
+                    )
+                  : Text(
+                      'Add',
+                      style: GoogleFonts.poppins(),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  createNoteCategory() async {
+    isLoading = true;
+    final response = await API().createNoteCategoryApi(
+      _categorynameController.text,
+    );
+    print("hererere");
+    var res = jsonDecode(response.body);
+    print(
+        ">>>>>>>>>>> create note category response statusCode ${response.statusCode}");
+    print(">>>>>>>>>>> create note category response body ${response.body}");
+    if (response.statusCode == 200) {
+      print("herer 0--");
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const NoteCategoryScreen(),
+        ),
+      );
+    } else if (response.statusCode == 400) {
+      showToast(context, res['message'], Colors.red);
+    }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   deleteNoteCategory(id) async {
@@ -301,12 +407,11 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
     var res = jsonDecode(response.body);
     if (response.statusCode == 200) {
       if (res['status'] == 'success') {
+        // ignore: use_build_context_synchronously
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NoteCategoryScreen(
-              userId: widget.userId,
-            ),
+            builder: (context) => const NoteCategoryScreen(),
           ),
         );
       }
@@ -324,10 +429,11 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
 // ------------------------------------
 
 class NoteCategoryModel extends StatefulWidget {
-  notecategorylistmodel eachnotecategory;
-  String userId;
-  NoteCategoryModel(
-      {super.key, required this.eachnotecategory, required this.userId});
+  final eachnotecategory;
+  const NoteCategoryModel({
+    super.key,
+    required this.eachnotecategory,
+  });
 
   @override
   State<NoteCategoryModel> createState() => _NoteCategoryModelState();
@@ -335,16 +441,27 @@ class NoteCategoryModel extends StatefulWidget {
 
 class _NoteCategoryModelState extends State<NoteCategoryModel> {
   var time = DateTime.now();
+  var _eachnotecategory = {};
+
+  @override
+  void initState() {
+    setState(() {
+      _eachnotecategory = widget.eachnotecategory;
+      print("-----------$_eachnotecategory");
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
+        print('>>>>>>>>>>>>>>>>>>>>${_eachnotecategory['categoryId']}');
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => NotesScreen(
-              categoryId: widget.eachnotecategory.categoryId,
-              userId: widget.userId,
+              categoryId: _eachnotecategory['categoryId'],
             ),
           ),
         );
@@ -374,7 +491,7 @@ class _NoteCategoryModelState extends State<NoteCategoryModel> {
                       // margin: const EdgeInsets.only(left: 10),
                       alignment: Alignment.topLeft,
                       child: Text(
-                        widget.eachnotecategory.categoryName,
+                        _eachnotecategory['categoryName'],
                         style:
                             GoogleFonts.poppins(fontSize: 13, color: backcolor),
                       ),

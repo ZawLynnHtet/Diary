@@ -1,13 +1,14 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:law_diary/User/logregister.dart';
+import 'package:law_diary/API/api.dart';
+import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
-
-import '../API/api.dart';
-import '../common.dart';
+import 'package:law_diary/User/logregister.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,9 +19,25 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscureText = true;
   bool isLoading = false;
+
+  FirebaseAuth auth = FirebaseAuth.instance;
+  User? currentUser;
+
+  userAuth() {
+    currentUser = auth.currentUser;
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {});
+    userAuth();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +88,35 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Form(
                       child: Column(
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: btncolor,
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: TextFormField(
+                              keyboardType: TextInputType.name,
+                              decoration: const InputDecoration(
+                                hintText: 'Enter Name',
+                                border: InputBorder.none,
+                              ),
+                              controller: _nameController,
+                              validator: (value) {
+                                return value!.isEmpty
+                                    ? 'Please enter Name?'
+                                    : null;
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 30,
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 25.0),
                         child: Container(
@@ -158,16 +204,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         height: 30,
                       ),
                       GestureDetector(
-                        onTap: () {
-                          if (_emailController.text == "") {
-                            showToast(context, "Enter Email", Colors.red);
-                          } else if (_passwordController.text == "") {
-                            showToast(context, "Enter Password", Colors.red);
-                          } else {
-                            setState(() {
-                              login();
-                            });
-                          }
+                        onTap: () async {
+                          login();
+                          setState(() {});
+                          // if (_emailController.text == "") {
+                          //   showToast(context, "Enter Email", Colors.red);
+                          // } else if (_passwordController.text == "") {
+                          //   showToast(context, "Enter Password", Colors.red);
+                          // } else {
+                          //   setState(() {
+                          // register();
+                          //   });
+                          // }
                         },
                         child: Container(
                           width: MediaQuery.of(context).size.width,
@@ -176,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: btncolor,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          margin: const EdgeInsets.only(left: 20, right: 20),
+                          margin: const EdgeInsets.only(left: 25, right: 25),
                           child: Center(
                             child: isLoading
                                 ? const SpinKitRing(
@@ -210,24 +258,47 @@ class _LoginScreenState extends State<LoginScreen> {
 
   login() async {
     isLoading = true;
+    final prefs = await SharedPreferences.getInstance();
     final response = await API().loginUser(
       _emailController.text,
+      _nameController.text,
       _passwordController.text,
     );
     var res = jsonDecode(response.body);
     if (response.statusCode == 200) {
-      token = res["token"];
       print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
       print("+++++++++++${res['user']['userId']}");
+      token = res["token"];
+      userID = res['user']['userId'];
+      email = res['user']['email'];
+      name = res['user']['name'];
+      await prefs.setString("token", token.toString());
+      await prefs.setString("userId", userID.toString());
+      await prefs.setString('email', res['user']['email']);
+      await prefs.setString('name', res['user']['name']);
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.userId$userID');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.email$email');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.name$name');
+      print(prefs.getString("token"));
+      // print(">>>>. firebase fcm token 1 $fcmtoken");
+      try {
+        fcmtoken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        print(">>>>e fcmtoken error $e");
+        fcmtoken = "";
+      }
+      print(">>>>. firebase fcm token 2 $fcmtoken");
       // ignore: use_build_context_synchronously
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => HomeScreen(userId: res['user']['userId']),
+          builder: (context) => const HomeScreen(),
         ),
       );
-    } else if (response.statusCode == 404) {
-      showToast(context, res, Colors.red);
+    } else if (response.statusCode != 200) {
+      // ignore: use_build_context_synchronously
+      showToast(context, res['message'], Colors.red);
     }
     setState(() {
       isLoading = false;

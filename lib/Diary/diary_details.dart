@@ -1,31 +1,20 @@
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/API/model.dart';
-import 'package:law_diary/Diary/create_diary.dart';
 import 'package:law_diary/Diary/create_diary_details.dart';
+import 'package:law_diary/Diary/daily_diary.dart';
 import 'package:law_diary/Diary/edit_diary.dart';
-import 'package:law_diary/main.dart';
+import 'package:law_diary/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../API/api.dart';
-import '../Books/books.dart';
-import '../common.dart';
-import '../home.dart';
 import 'action-todo_details.dart';
-import 'daily_diary.dart';
 
 class DiaryDetails extends StatefulWidget {
-  String diaryId;
-  String userId;
-  DiaryDetails({super.key, required this.diaryId, required this.userId});
+  final String diaryId;
+  const DiaryDetails({super.key, required this.diaryId});
 
   @override
   State<DiaryDetails> createState() => _DiaryDetailsState();
@@ -103,6 +92,7 @@ class _DiaryDetailsState extends State<DiaryDetails> {
                 notes: diarydetailsList[i]["notes"] ?? "",
                 startDate: diarydetailsList[i]["startDate"] ?? "",
                 appointment: diarydetailsList[i]["appointment"] ?? "",
+                pdffile: diarydetailsList[i]["url"] ?? "",
               ),
             );
             print('>>>>>>>>>>>>>>>>mydetails<<<<<<<<<<<<<<<${mydetails[0]}');
@@ -178,7 +168,7 @@ class _DiaryDetailsState extends State<DiaryDetails> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => DailyDiary(userId: widget.userId),
+                builder: (context) => const DailyDiaryPage(),
               ),
             );
           },
@@ -197,7 +187,7 @@ class _DiaryDetailsState extends State<DiaryDetails> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DailyDiary(userId: widget.userId),
+              builder: (context) => const DailyDiaryPage(),
             ),
           );
           return false;
@@ -217,23 +207,20 @@ class _DiaryDetailsState extends State<DiaryDetails> {
                       color: fifthcolor,
                     ),
                   ))
-                : SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: Container(
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
-                        child: ListView.builder(
-                          itemCount: mydetails.length,
-                          itemBuilder: (context, i) {
-                            return DiaryDetailsModel(
-                              userId: widget.userId,
-                              eachdetails: mydetails[i],
-                              diaryId: widget.diaryId,
-                              // eachdiary: mydiary[i],
-                            );
-                          },
-                        ),
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0.0),
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      child: ListView.builder(
+                        itemCount: mydetails.length,
+                        itemBuilder: (context, i) {
+                          return DiaryDetailsModel(
+                            eachdetails: mydetails[i],
+                            diaryId: widget.diaryId,
+                            // eachdiary: mydiary[i],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -245,7 +232,6 @@ class _DiaryDetailsState extends State<DiaryDetails> {
             context,
             MaterialPageRoute(
               builder: (context) => CreateDiaryDetails(
-                userId: widget.userId,
                 diaryId: widget.diaryId,
               ),
             ),
@@ -295,15 +281,13 @@ class _DiaryDetailsState extends State<DiaryDetails> {
 }
 
 class DiaryDetailsModel extends StatefulWidget {
-  diarydetailslistmodel eachdetails;
-  String userId;
-  String diaryId;
-  // diarylistmodel eachdiary;
-  DiaryDetailsModel(
-      {super.key,
-      required this.eachdetails,
-      required this.userId,
-      required this.diaryId});
+  final diarydetailslistmodel eachdetails;
+  final String diaryId;
+  const DiaryDetailsModel({
+    super.key,
+    required this.eachdetails,
+    required this.diaryId,
+  });
 
   @override
   State<DiaryDetailsModel> createState() => _DiaryDetailsModelState();
@@ -352,7 +336,6 @@ class _DiaryDetailsModelState extends State<DiaryDetailsModel> {
             context,
             MaterialPageRoute(
               builder: (context) => EditDiary(
-                userId: widget.userId,
                 editData: mydata,
                 diaryId: widget.diaryId,
                 // categoryId: widget.eachnote.categoryId,
@@ -393,7 +376,12 @@ class _DiaryDetailsModelState extends State<DiaryDetailsModel> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ActionTodoDetails(actions: widget.eachdetails.actions, toDo: widget.eachdetails.toDo,notes: widget.eachdetails.notes,),
+              builder: (context) => ActionTodoDetails(
+                actions: widget.eachdetails.actions,
+                toDo: widget.eachdetails.toDo,
+                notes: widget.eachdetails.notes,
+                pdffile: widget.eachdetails.pdffile,
+              ),
             ),
           );
         },
@@ -427,73 +415,32 @@ class _DiaryDetailsModelState extends State<DiaryDetailsModel> {
                     _popUpWidget(widget.eachdetails),
                   ],
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(vertical: 10),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Text(
-                //         'အမှုနံပါတ် :',
-                //         style: GoogleFonts.poppins(
-                //           fontSize: 13,
-                //           color: maincolor,
-                //         ),
-                //       ),
-                //       // Text(
-                //       //   widget.eachdiary.causeNum,
-                //       //   style: GoogleFonts.poppins(
-                //       //     fontSize: 13,
-                //       //     color: backcolor,
-                //       //   ),
-                //       // ),
-                //     ],
-                //   ),
-                // ),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(vertical: 10),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Text(
-                //         'အမှု :',
-                //         style: GoogleFonts.poppins(
-                //           fontSize: 13,
-                //           color: maincolor,
-                //         ),
-                //       ),
-                //       // Text(
-                //       //   widget.eachdiary.cause,
-                //       //   style: GoogleFonts.poppins(
-                //       //     fontSize: 13,
-                //       //     color: backcolor,
-                //       //   ),
-                //       // ),
-                //     ],
-                //   ),
-                // ),
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(vertical: 10),
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Text(
-                //         'အမှုအမျိုးအစား :',
-                //         style: GoogleFonts.poppins(
-                //           fontSize: 13,
-                //           color: maincolor,
-                //         ),
-                //       ),
-                //       // Text(
-                //       //   widget.eachdiary.causeType,
-                //       //   style: GoogleFonts.poppins(
-                //       //     fontSize: 13,
-                //       //     color: backcolor,
-                //       //   ),
-                //       // ),
-                //       // _popUpWidget(widget.eachdetails)
-                //     ],
-                //   ),
-                // ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'နေ့စွဲ :',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: maincolor,
+                        ),
+                      ),
+                      Text(
+                        widget.eachdetails.startDate == ""
+                            ? ""
+                            : DateFormat("dd-MM-yyyy").format(
+                                DateTime.parse(widget.eachdetails.startDate),
+                              ),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: maincolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20),
                   child: Row(
@@ -517,6 +464,32 @@ class _DiaryDetailsModelState extends State<DiaryDetailsModel> {
                             color: maincolor,
                           ),
                           overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, right: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'ရုံးချိန်းရက် :',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: maincolor,
+                        ),
+                      ),
+                      Text(
+                        widget.eachdetails.appointment == ""
+                            ? ""
+                            : DateFormat("dd-MM-yyyy").format(
+                                DateTime.parse(widget.eachdetails.appointment),
+                              ),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: maincolor,
                         ),
                       ),
                     ],
@@ -585,48 +558,25 @@ class _DiaryDetailsModelState extends State<DiaryDetailsModel> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'နေ့စွဲ :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
+                      Expanded(
+                        child: Text(
+                          'ဖိုင် :',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: maincolor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text(
-                        widget.eachdetails.startDate == ""
-                            ? ""
-                            : DateFormat("dd-MM-yyyy").format(
-                                DateTime.parse(widget.eachdetails.startDate),
-                              ),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'ရုံးချိန်းရက် :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
-                        ),
-                      ),
-                      Text(
-                        widget.eachdetails.appointment == ""
-                            ? ""
-                            : DateFormat("dd-MM-yyyy").format(
-                                DateTime.parse(widget.eachdetails.appointment),
-                              ),
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
+                      Expanded(
+                        child: Text(
+                          widget.eachdetails.pdffile,
+                          maxLines: 1,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: maincolor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

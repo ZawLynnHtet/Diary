@@ -1,21 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:law_diary/Note-Category/note-category.dart';
-import 'package:law_diary/main.dart';
+import 'package:law_diary/API/api.dart';
+import 'package:law_diary/API/model.dart';
+import 'package:law_diary/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../API/api.dart';
-import '../API/model.dart';
-import '../common.dart';
-import '../home.dart';
 import 'edit-law-category.dart';
-import 'law-category.dart';
 
 class CreateLawCategory extends StatefulWidget {
   const CreateLawCategory({super.key});

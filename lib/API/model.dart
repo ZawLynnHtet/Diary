@@ -61,6 +61,7 @@ class diarydetailslistmodel {
   String notes;
   String startDate;
   String appointment;
+  String pdffile;
 
   diarydetailslistmodel({
     required this.detailsId,
@@ -70,17 +71,20 @@ class diarydetailslistmodel {
     required this.notes,
     required this.startDate,
     required this.appointment,
+    required this.pdffile,
   });
 
   factory diarydetailslistmodel.fromJson(Map<String, dynamic> jsonData) {
     return diarydetailslistmodel(
-        detailsId: jsonData['detailsId'],
-        diaryId: jsonData['diaryId'],
-        actions: jsonData['actions'],
-        toDo: jsonData['toDo'],
-        notes: jsonData['notes'],
-        startDate: jsonData['startDate'],
-        appointment: jsonData['appointment']);
+      detailsId: jsonData['detailsId'],
+      diaryId: jsonData['diaryId'],
+      actions: jsonData['actions'],
+      toDo: jsonData['toDo'],
+      notes: jsonData['notes'],
+      startDate: jsonData['startDate'],
+      appointment: jsonData['appointment'],
+      pdffile: jsonData['url'],
+    );
   }
 
   static Map<String, dynamic> toMap(diarydetailslistmodel music) => {
@@ -91,6 +95,7 @@ class diarydetailslistmodel {
         'notes': music.notes,
         'startDate': music.startDate,
         'appointmentdate': music.appointment,
+        'url': music.pdffile,
       };
 
   static String encode(List<diarydetailslistmodel> details) => json.encode(
@@ -281,8 +286,8 @@ class attachmentlistmodel {
 
   static List<attachmentlistmodel> decode(String attachments) =>
       (json.decode(attachments) as List<dynamic>)
-          .map<attachmentlistmodel>((eachattachment) =>
-              attachmentlistmodel.fromJson(eachattachment))
+          .map<attachmentlistmodel>(
+              (eachattachment) => attachmentlistmodel.fromJson(eachattachment))
           .toList();
 
   static String sigleencode(attachmentlistmodel single) =>

@@ -1,21 +1,18 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:law_diary/API/api.dart';
 import 'package:law_diary/Diary/daily_diary.dart';
-import 'package:law_diary/Law-Category/law-category.dart';
 import 'package:law_diary/common.dart';
-import 'package:law_diary/main.dart';
-
-import '../API/api.dart';
 
 class CreateDiary extends StatefulWidget {
-  String userId;
-  CreateDiary({super.key, required this.userId});
+  const CreateDiary({super.key});
 
   @override
   State<CreateDiary> createState() => _CreateDiaryState();
@@ -31,9 +28,48 @@ class _CreateDiaryState extends State<CreateDiary> {
   final TextEditingController _actionsController = TextEditingController();
   final TextEditingController _toDoController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+  final TextEditingController _attachmentNameController =
+      TextEditingController();
+  final TextEditingController _atachmentFileController =
+      TextEditingController();
 
   bool isLoading = false;
   DateTime? picked;
+
+  String pdffile = '';
+  String pdfvalue = '';
+
+  Future uploadFile() async {
+    isLoading = true;
+    if (pdffile.isNotEmpty) {
+      Reference ref =
+          FirebaseStorage.instance.ref().child('files').child(pdfvalue);
+      UploadTask uploadTask = ref.putFile(File(pdffile));
+
+      await uploadTask.whenComplete(() async {
+        print('PDF Uploaded');
+        var fileURL = await ref.getDownloadURL();
+        print(fileURL);
+        createDiary(fileURL);
+      });
+    }
+  }
+
+  Future selectFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        pdfvalue = result.files.single.name;
+        pdffile = result.files.single.path!;
+        print(pdfvalue);
+        print(pdffile);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +84,7 @@ class _CreateDiaryState extends State<CreateDiary> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => DailyDiary(
-                  userId: widget.userId,
-                ),
+                builder: (context) => const DailyDiaryPage(),
               ),
             );
           },
@@ -65,16 +99,14 @@ class _CreateDiaryState extends State<CreateDiary> {
         ),
       ),
       body: WillPopScope(
-        onWillPop: () async{
-           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DailyDiary(
-                  userId: widget.userId,
-                ),
-              ),
-            );
-            return false;
+        onWillPop: () async {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DailyDiaryPage(),
+            ),
+          );
+          return false;
         },
         child: SingleChildScrollView(
           child: Column(
@@ -240,6 +272,35 @@ class _CreateDiaryState extends State<CreateDiary> {
                 child: Padding(
                   padding: const EdgeInsets.only(left: 5),
                   child: TextFormField(
+                    style: TextStyle(color: backcolor),
+                    keyboardType: TextInputType.name,
+                    decoration: InputDecoration(
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: fifthcolor),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: fifthcolor),
+                      ),
+                      labelText: 'ဆောင်ရွက်ချက်',
+                      labelStyle: TextStyle(color: fifthcolor),
+                      // border: InputBorder.none,
+                    ),
+                    controller: _toDoController,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(
+                  right: 15,
+                  bottom: 10,
+                  left: 15,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: TextFormField(
                     onTap: () {
                       _pickDateDialog();
                     },
@@ -258,7 +319,9 @@ class _CreateDiaryState extends State<CreateDiary> {
                     ),
                     controller: _appointmentController,
                     validator: (value) {
-                      return value!.isEmpty ? 'Please Enter Appointment!' : null;
+                      return value!.isEmpty
+                          ? 'Please Enter Appointment!'
+                          : null;
                     },
                   ),
                 ),
@@ -313,35 +376,6 @@ class _CreateDiaryState extends State<CreateDiary> {
                       focusedBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: fifthcolor),
                       ),
-                      labelText: 'ဆောင်ရွက်ချက်',
-                      labelStyle: TextStyle(color: fifthcolor),
-                      // border: InputBorder.none,
-                    ),
-                    controller: _toDoController,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  right: 15,
-                  bottom: 10,
-                  left: 15,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 5),
-                  child: TextFormField(
-                    style: TextStyle(color: backcolor),
-                    keyboardType: TextInputType.name,
-                    decoration: InputDecoration(
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: fifthcolor),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: fifthcolor),
-                      ),
                       labelText: 'မှတ်ချက်',
                       labelStyle: TextStyle(color: fifthcolor),
                       // border: InputBorder.none,
@@ -353,49 +387,170 @@ class _CreateDiaryState extends State<CreateDiary> {
               const SizedBox(
                 height: 15,
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 30,
-                  height: MediaQuery.of(context).size.height * 0.06,
-                  child: MaterialButton(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    color: darkmain,
-                    onPressed: () {
-                      if (_caseNumController.text == "") {
-                        showToast(context, "အမှုနံပါတ်ထည့်ပါ!!", Colors.red);
-                      } else if (_caseController.text == "") {
-                        showToast(context, "အမှုထည့်ပါ", Colors.red);
-                      } else if (_nameController.text == "") {
-                        showToast(context, "အမှုသည်နာမည်ထည့်ပါ", Colors.red);
-                      } else {
-                        setState(() {
-                          createDiary(widget.userId);
-                        });
-                      }
-                    },
-                    child: isLoading
-                        ? const SpinKitRing(
-                            size: 23,
-                            lineWidth: 3,
-                            color: Colors.black,
-                          )
-                        : Text(
-                            'Create',
-                            style: GoogleFonts.poppins(
-                                color: seccolor,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w500),
-                          ),
+              Row(
+                children: [
+                  const SizedBox(
+                    width: 10,
                   ),
-                ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        selectFile();
+                        setState(() {});
+                      },
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: darkmain,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Select File',
+                            style: GoogleFonts.poppins(
+                              color: seccolor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 30,
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        if (_caseNumController.text == "") {
+                          showToast(context, "အမှုနံပါတ်ထည့်ပါ!!", Colors.red);
+                        } else if (_caseController.text == "") {
+                          showToast(context, "အမှုထည့်ပါ", Colors.red);
+                        } else if (_nameController.text == "") {
+                          showToast(context, "အမှုသည်နာမည်ထည့်ပါ", Colors.red);
+                        } else if (_caseTypeController.text == "") {
+                          showToast(
+                              context, "အမှုအမျိုးအစားထည့်ပါ", Colors.red);
+                        } else if (_startdateController.text == "") {
+                          showToast(context, "နေ့စွဲထည့်ပါ", Colors.red);
+                        } else if (_toDoController.text == "") {
+                          showToast(context, "ဆောင်ရွက်ချက်ထည့်ပါ", Colors.red);
+                        } else if (_appointmentController.text == "") {
+                          showToast(context, "ရုံးချိန်းရက်ထည့်ပါ", Colors.red);
+                        } else if (_actionsController.text == "") {
+                          showToast(context, "ဆောင်ရွက်ရန်ထည့်ပါ", Colors.red);
+                        } else if (_notesController.text == "") {
+                          showToast(context, "မှတ်ချက်ထည့်ပါ", Colors.red);
+                        } else {
+                          setState(() {
+                            uploadFile();
+                          });
+                        }
+                      },
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: darkmain,
+                        ),
+                        child: isLoading
+                            ? const SpinKitRing(
+                                size: 23,
+                                lineWidth: 3,
+                                color: Colors.black,
+                              )
+                            : Center(
+                                child: Text(
+                                  'Create',
+                                  style: GoogleFonts.poppins(
+                                    color: seccolor,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                ],
               ),
               const SizedBox(
                 height: 30,
               ),
+              // ElevatedButton(
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: darkmain,
+              //   ),
+              //   onPressed: () {
+              //     selectFile();
+              //     setState(() {});
+              //   },
+              //   child: Text(
+              //     'Select File',
+              //     style: GoogleFonts.poppins(
+              //       color: seccolor,
+              //     ),
+              //   ),
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 20.0),
+              //   child: SizedBox(
+              //     width: MediaQuery.of(context).size.width - 30,
+              //     height: MediaQuery.of(context).size.height * 0.06,
+              //     child: MaterialButton(
+              //       elevation: 0,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(6),
+              //       ),
+              //       color: darkmain,
+              //       onPressed: () {
+              //         if (_caseNumController.text == "") {
+              //           showToast(context, "အမှုနံပါတ်ထည့်ပါ!!", Colors.red);
+              //         } else if (_caseController.text == "") {
+              //           showToast(context, "အမှုထည့်ပါ", Colors.red);
+              //         } else if (_nameController.text == "") {
+              //           showToast(context, "အမှုသည်နာမည်ထည့်ပါ", Colors.red);
+              //         } else if (_caseTypeController.text == "") {
+              //           showToast(context, "အမှုအမျိုးအစားထည့်ပါ", Colors.red);
+              //         } else if (_startdateController.text == "") {
+              //           showToast(context, "နေ့စွဲထည့်ပါ", Colors.red);
+              //         } else if (_toDoController.text == "") {
+              //           showToast(context, "ဆောင်ရွက်ချက်ထည့်ပါ", Colors.red);
+              //         } else if (_appointmentController.text == "") {
+              //           showToast(context, "ရုံးချိန်းရက်ထည့်ပါ", Colors.red);
+              //         } else if (_actionsController.text == "") {
+              //           showToast(context, "ဆောင်ရွက်ရန်ထည့်ပါ", Colors.red);
+              //         } else if (_notesController.text == "") {
+              //           showToast(context, "မှတ်ချက်ထည့်ပါ", Colors.red);
+              //         } else {
+              //           setState(() {
+              //             uploadFile();
+              //           });
+              //         }
+              //       },
+              //       child: isLoading
+              //           ? const SpinKitRing(
+              //               size: 23,
+              //               lineWidth: 3,
+              //               color: Colors.black,
+              //             )
+              //           : Text(
+              //               'Create',
+              //               style: GoogleFonts.poppins(
+              //                   color: seccolor,
+              //                   fontSize: 20,
+              //                   fontWeight: FontWeight.w500),
+              //             ),
+              //     ),
+              //   ),
+              // ),
+              // const SizedBox(
+              //   height: 30,
+              // ),
             ],
           ),
         ),
@@ -405,11 +560,9 @@ class _CreateDiaryState extends State<CreateDiary> {
 
   String diaryId = "";
 
-  createDiary(userId) async {
-    print("++++++++++++++++++++++$userId");
+  createDiary(pdffile) async {
     isLoading = true;
     final response = await API().createDiaryApi(
-      userId,
       _caseNumController.text,
       _caseController.text,
       _nameController.text,
@@ -423,29 +576,57 @@ class _CreateDiaryState extends State<CreateDiary> {
     diaryId = data['diaryId'];
     print("========$diaryId");
     if (diaryId != '') {
-      createDetails(diaryId);
+      createDetails(diaryId, pdffile);
     }
+    // createAttachment();
     // print(
     //     ">>>>>>>>>>> create diary response statusCode ${response.statusCode}");
     // print(">>>>>>>>>>> create diary response body ${response.body}");
-    // if (response.statusCode == 200) {
-    //   print("herer 0--");
-    //   // ignore: use_build_context_synchronously
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (context) => const DailyDiary(),
-    //     ),
-    //   );
-    // } else if (response.statusCode == 500) {
-    //   showToast(context, res['message'], Colors.red);
-    // }
-    // setState(() {
-    //   isLoading = false;
-    // });
+    if (response.statusCode == 200) {
+      print("herer 0--");
+      // ignore: use_build_context_synchronously
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DailyDiaryPage(),
+        ),
+      );
+    } else if (response.statusCode == 500) {
+      showToast(context, res['message'], Colors.red);
+    }
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  createDetails(id) async {
+  // createAttachment() async {
+  //   print('begin<<<<<<<>>>>>><<<<<>>>>>>>><<<<<<<>...>>>>>>>');
+  //   final response = await API().createAttachmentApi(
+  //     _attachmentNameController,
+  //     _atachmentFileController,
+  //   );
+  //   print("hererere");
+  //   var res = jsonDecode(response.body);
+  //   print(
+  //       ">>>>>>>>>>> create attachemnt response statusCode ${response.statusCode}");
+  //   print(">>>>>>>>>>> create attachment response body ${response.body}");
+
+  //   if (response.statusCode == 200) {
+  //     print("herer 0--");
+  //   } else if (response.statusCode == 500) {
+  //     showToast(context, res['message'], Colors.red);
+  //   }
+  //   setState(() {
+  //     isLoading = false;
+  //   });
+  //   setState(() {
+  //     isLoading = false;
+  //   });
+  //   print('end>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>');
+  // }
+
+  createDetails(id, pdffile) async {
+    isLoading = true;
     final response = await API().createDiaryDetailsApi(
       id,
       _startdateController.text,
@@ -453,6 +634,8 @@ class _CreateDiaryState extends State<CreateDiary> {
       _actionsController.text,
       _toDoController.text,
       _notesController.text,
+      pdffile,
+      fcmtoken,
     );
     print("hererere");
     var res = jsonDecode(response.body);
@@ -463,14 +646,14 @@ class _CreateDiaryState extends State<CreateDiary> {
     if (response.statusCode == 200) {
       print("herer 0--");
       // ignore: use_build_context_synchronously
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DailyDiary(
-            userId: widget.userId,
-          ),
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => DailyDiary(
+      //       userId: widget.userId,
+      //     ),
+      //   ),
+      // );
     } else if (response.statusCode == 500) {
       showToast(context, res['message'], Colors.red);
     }
