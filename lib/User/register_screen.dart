@@ -7,6 +7,7 @@ import 'package:law_diary/API/api.dart';
 import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
 import 'package:law_diary/User/logregister.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -251,6 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   register() async {
     isLoading = true;
+    final prefs = await SharedPreferences.getInstance();
     final response = await API().registerUser(
       _emailController.text,
       _nameController.text,
@@ -263,6 +265,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       userID = res['user']['userId'];
       email = res['user']['email'];
       name = res['user']['name'];
+      await prefs.setString("token", token.toString());
+      await prefs.setString("userId", userID.toString());
+      await prefs.setString('email', res['user']['email']);
+      await prefs.setString('name', res['user']['name']);
+
       try {
         fcmtoken = await FirebaseMessaging.instance.getToken();
       } catch (e) {
@@ -281,6 +288,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } else if (response.statusCode != 200) {
       showToast(context, res['message'], Colors.red);
     }
+    defaultCategoryName();
     setState(() {
       isLoading = false;
     });

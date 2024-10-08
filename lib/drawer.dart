@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/API/api.dart';
 import 'package:law_diary/User/change_psw.dart';
 import 'package:law_diary/User/forgot-psw.dart';
-import 'package:law_diary/User/logregistertest.dart';
 import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
 import 'package:law_diary/User/logregister.dart';
@@ -19,6 +18,7 @@ class DrawerPage extends StatefulWidget {
 }
 
 class _DrawerPageState extends State<DrawerPage> {
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -34,15 +34,45 @@ class _DrawerPageState extends State<DrawerPage> {
               email,
               style: GoogleFonts.poppins(fontSize: 13, color: maincolor),
             ),
-            currentAccountPicture: CircleAvatar(
-              child: ClipOval(
-                child: Image.network(
-                  'https://i.pinimg.com/736x/db/05/99/db0599b128c0f07b2f7492849f638e94.jpg',
-                  width: 90,
-                  height: 90,
-                  fit: BoxFit.cover,
+            currentAccountPicture: GestureDetector(
+              onTap: () {
+                setState(() {
+                  // Navigator.pushReplacement(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const UploadProfile(),
+                  //   ),
+                  // );
+                });
+              },
+              child: CircleAvatar(
+                child: ClipOval(
+                  child: Text(
+                    name == '' ? "" : name[0].toUpperCase(),
+                    
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                    ),
+                  ),
+                  // child: Image.asset(
+                  //   'images/profile.jpg',
+                  //   height: 120,
+                  //   width: 120,
+                  //   fit: BoxFit.cover,
+                  // ),
                 ),
               ),
+
+              // CircleAvatar(
+              //   child: ClipOval(
+              //     child: Image.asset(
+              //       'images/profile.jpg',
+              //       height: 120,
+              //       width: 120,
+              //       fit: BoxFit.cover,
+              //     ),
+              //   ),
+              // ),
             ),
             decoration: BoxDecoration(
               color: thirdcolor,
@@ -97,10 +127,70 @@ class _DrawerPageState extends State<DrawerPage> {
             ),
           ),
           GestureDetector(
-            onTap: () {
-              setState(() {
-                forgotPsw();
-              });
+            onTap: () async {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    contentPadding: const EdgeInsets.only(
+                      left: 10,
+                      top: 15,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Are You sure to reset your password?",
+                          style: TextStyle(
+                            color: seccolor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                "No",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.blue,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                forgotPsw();
+                                setState(() {});
+                              },
+                              child: Text(
+                                'Yes',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
             },
             child: ListTile(
               leading: Icon(

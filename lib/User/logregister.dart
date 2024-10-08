@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/User/login_screen.dart';
 import 'package:law_diary/User/register_screen.dart';
 import 'package:law_diary/common.dart';
-import 'package:law_diary/main.dart';
 
 class LogRegister extends StatefulWidget {
   const LogRegister({super.key});
@@ -68,7 +65,7 @@ class _LogRegisterState extends State<LogRegister> {
                       'Law is a set of rules that are created and\n are enforceable by governmental institutions.',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        fontSize: 17,
+                       fontSize: MediaQuery.of(context).size.width * 0.04,
                         color: fifthcolor,
                         height: 1.2,
                       ),

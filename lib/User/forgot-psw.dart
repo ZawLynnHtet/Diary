@@ -19,6 +19,8 @@ class _ForgotPswState extends State<ForgotPsw> {
   bool _obscureText = true;
   final TextEditingController _newPswController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
+  final TextEditingController _comfirmPassword = TextEditingController();
+  bool _verify = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,169 +43,261 @@ class _ForgotPswState extends State<ForgotPsw> {
         elevation: 0,
       ),
       drawer: const DrawerPage(),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Center(
-            //   child: Text(
-            //     'သင့်Emailထံသို့ဂဏန်းခြောက်လုံးပါသော OTP Code ပို့လိုက်ပါပြီ',
-            //     style: GoogleFonts.poppins(fontSize: 16, color: maincolor),
-            //   ),
-            // ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 100),
-              child: Column(
-                children: [
-                  Text(
-                    'သင့်Emailထံသို့ဂဏန်းခြောက်လုံးပါသော OTP Code ပို့လိုက်ပါပြီ',
-                    style: GoogleFonts.poppins(
-                      color: maincolor,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Container(
-                    child: Pinput(
-                      length: 6,
-                      defaultPinTheme: defaultPinTheme,
-                      focusedPinTheme: defaultPinTheme.copyWith(
-                        decoration: defaultPinTheme.decoration!.copyWith(
-                          border: Border.all(color: fifthcolor),
-                        ),
-                      ),
-                      onCompleted: (pin) => debugPrint(pin),
-                    ),
-                  ),
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  //   child: Container(
-                  //     decoration: BoxDecoration(
-                  //       color: btncolor,
-                  //       border: Border.all(color: Colors.black),
-                  //       borderRadius: BorderRadius.circular(12),
-                  //     ),
-                  //     child: Padding(
-                  //       padding: const EdgeInsets.only(left: 20),
-                  //       child: TextFormField(
-                  //         keyboardType: TextInputType.visiblePassword,
-                  //         decoration: InputDecoration(
-                  //           border: InputBorder.none,
-                  //           hintText: 'Enter OTP',
-                  //           suffixIcon: GestureDetector(
-                  //             onTap: () {
-                  //               setState(() {
-                  //                 _obscureText = !_obscureText;
-                  //               });
-                  //             },
-                  //             child: Icon(_obscureText
-                  //                 ? Icons.visibility
-                  //                 : Icons.visibility_off),
-                  //           ),
-                  //         ),
-                  //         controller: _otpController,
-                  //         obscureText: _obscureText,
-                  //         validator: (value) {
-                  //           return value!.isEmpty ? 'Please enter otp' : null;
-                  //         },
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: btncolor,
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: TextFormField(
-                          keyboardType: TextInputType.visiblePassword,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Enter New Password',
-                            suffixIcon: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _obscureText = !_obscureText;
-                                });
-                              },
-                              child: Icon(_obscureText
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
+      body: WillPopScope(
+        onWillPop: () async {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ),
+          );
+          return false;
+        },
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding( 
+                padding: const EdgeInsets.symmetric(vertical: 100),
+                child: _verify == false
+                    ? Column(
+                        children: [
+                          Text(
+                            "Verification",
+                            style: GoogleFonts.poppins(
+                              color: maincolor,
+                              fontSize: MediaQuery.of(context).size.width * 0.07
                             ),
                           ),
-                          controller: _newPswController,
-                          obscureText: _obscureText,
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Please enter  password'
-                                : null;
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      setNewPsw();
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: btncolor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      margin: const EdgeInsets.only(left: 20, right: 20),
-                      child: Center(
-                        child: Text(
-                          'Confirm',
-                          style: TextStyle(
-                            color: seccolor,
-                            fontSize: 15,
+                          Text(
+                            'သင့်Emailထံသို့ဂဏန်းခြောက်လုံးပါသော OTP Code ပို့လိုက်ပါပြီ',
+                            style: GoogleFonts.poppins(
+                                color: maincolor,
+                                fontSize:
+                                    MediaQuery.of(context).size.width * 0.03),
                           ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
+                          const SizedBox(height: 30),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 20, right: 20),
+                            child: Container(
+                              child: Pinput(
+                                length: 6,
+                                defaultPinTheme: defaultPinTheme,
+                                focusedPinTheme: defaultPinTheme.copyWith(
+                                  decoration:
+                                      defaultPinTheme.decoration!.copyWith(
+                                    border: Border.all(color: fifthcolor),
+                                  ),
+                                ),
+                                onCompleted: (pin) => debugPrint(pin),
+                                controller: _otpController,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              verifyOtp();
+                              setState(() {});
+                            },
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                color: btncolor,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              margin:
+                                  const EdgeInsets.only(left: 25, right: 25),
+                              child: Center(
+                                  child: Icon(
+                                Icons.check,
+                                size: 40,
+                                color: Colors.green,
+                              )),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                        ],
+                      )
+                    : Form(
+                        child: Column(
+                        children: [
+                          Text(
+                            'Change your New Password',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              color: maincolor,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: btncolor,
+                                border: Border.all(color: Colors.black),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 20),
+                                child: TextFormField(
+                                  keyboardType: TextInputType.visiblePassword,
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'Enter Old Password',
+                                    suffixIcon: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _obscureText = !_obscureText;
+                                        });
+                                      },
+                                      child: Icon(_obscureText
+                                          ? Icons.visibility
+                                          : Icons.visibility_off),
+                                    ),
+                                  ),
+                                  controller: _newPswController,
+                                  obscureText: _obscureText,
+                                  validator: (value) {
+                                    return value!.isEmpty
+                                        ? 'Please enter new password'
+                                        : null;
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: btncolor,
+                                border: Border.all(color: Colors.black),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 20),
+                                child: TextFormField(
+                                  keyboardType: TextInputType.visiblePassword,
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'Enter New Password',
+                                    suffixIcon: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _obscureText = !_obscureText;
+                                        });
+                                      },
+                                      child: Icon(_obscureText
+                                          ? Icons.visibility
+                                          : Icons.visibility_off),
+                                    ),
+                                  ),
+                                  controller: _comfirmPassword,
+                                  obscureText: _obscureText,
+                                  validator: (value) {
+                                    return value!.isEmpty
+                                        ? 'Comfirm password'
+                                        : null;
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 30,
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              setState(() {
+                                setNewPsw();
+                              });
+                            },
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: btncolor,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              margin:
+                                  const EdgeInsets.only(left: 25, right: 25),
+                              child: Center(
+                                child: Text(
+                                  'Update',
+                                  style: TextStyle(
+                                    color: seccolor,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                        ],
+                      )),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   setNewPsw() async {
-    final response = await API().setNewPws(
+    if (_newPswController.text == _comfirmPassword.text) {
+      final response = await API().setNewPws(
+        email,
+        _otpController.text,
+        _newPswController.text,
+      );
+      var res = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        setState(() {
+          showToast(context, res['message'], Colors.green);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ),
+          );
+        });
+      } else if (response.statusCode != 200) {
+        // ignore: use_build_context_synchronously
+        showToast(context, res['message'], Colors.red);
+      }
+    } else {
+      showToast(context, "Your password is not match", Colors.red);
+    }
+  }
+
+  verifyOtp() async {
+    final response = await API().verify(
       email,
       _otpController.text,
-      _newPswController.text,
     );
     var res = jsonDecode(response.body);
     if (response.statusCode == 200) {
       setState(() {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
-        );
+        _verify = true;
       });
-    } else if (response.statusCode != 200) {
+      showToast(context, res['message'], Colors.green);
+    } else {
       // ignore: use_build_context_synchronously
       showToast(context, res['message'], Colors.red);
     }

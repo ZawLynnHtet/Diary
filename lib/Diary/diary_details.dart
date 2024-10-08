@@ -24,8 +24,8 @@ class _DiaryDetailsState extends State<DiaryDetails> {
   List<diarydetailslistmodel> mydetails = [];
   diarydetailslistmodel? selecteddetails;
 
-  List<diarylistmodel> mydiary = [];
-  diarylistmodel? selecteddiary;
+  // List<diarylistmodel> mydiary = [];
+  // diarylistmodel? selecteddiary;
 
   bool ready = false;
   bool isLoading = false;
@@ -405,7 +405,7 @@ class _DiaryDetailsModelState extends State<DiaryDetailsModel> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 20, top: 10),
+                      padding: const EdgeInsets.only(left: 0, top: 10),
                       child: Image.asset(
                         'images/lawbg.png',
                         width: 100,

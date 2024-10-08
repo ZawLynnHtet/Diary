@@ -20,14 +20,16 @@ class _SplashState extends State<Splash> {
     final getToken = prefs.getString('token');
     final getuserid = prefs.getString('userId');
     final getemail = prefs.getString('email');
+    final getname = prefs.getString('name');
     token = getToken.toString();
     userID = getuserid.toString();
     email = getemail.toString();
+    name = getname.toString();
     setState(() {});
   }
 
   startTimer() async {
-    var duration = const Duration(seconds: 5);
+    var duration = const Duration(seconds: 2);
     return Timer(duration, route);
   }
 
@@ -36,6 +38,7 @@ class _SplashState extends State<Splash> {
       token = '';
       userID = "";
       email = "";
+      name = "";
       return Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -75,13 +78,13 @@ class _SplashState extends State<Splash> {
           ),
         ),
         persistentFooterButtons: [
-          Center(
-            child: Image.network(
-              'https://cdn-icons-gif.flaticon.com/15571/15571090.gif',
-              width: 50,
-              height: 50,
-            ),
-          ),
+          // Center(
+          //   child: Image.network(
+          //     'https://cdn-icons-gif.flaticon.com/15571/15571090.gif',
+          //     width: 50,
+          //     height: 50,
+          //   ),
+          // ),
         ],
         // persistentFooterButtons: [
         //   Center(

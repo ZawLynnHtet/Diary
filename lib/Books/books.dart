@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/API/model.dart';
 import 'package:law_diary/common.dart';
+import 'package:law_diary/home.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BooksScreen extends StatefulWidget {
@@ -11,11 +12,12 @@ class BooksScreen extends StatefulWidget {
   State<BooksScreen> createState() => _BooksScreenState();
 }
 
-class _BooksScreenState extends State<BooksScreen> { 
+class _BooksScreenState extends State<BooksScreen> {
   bool ready = false;
   bool isLoading = false;
 
-  String url = 'https://www.unionsupremecourt.gov.mm/dailys';
+  // String url = 'https://www.unionsupremecourt.gov.mm/dailys';
+  final url = 'https://www.unionsupremecourt.gov.mm/dailys';
 
   // getattachment() async {
   //   isLoading = true;
@@ -63,7 +65,12 @@ class _BooksScreenState extends State<BooksScreen> {
         leading: BackButton(
           color: darkmain,
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+            );
           },
         ),
         title: Text(
@@ -75,20 +82,30 @@ class _BooksScreenState extends State<BooksScreen> {
           ),
         ),
       ),
-      body: GestureDetector(
-        onTap: () async {
-          if (await canLaunch(url)) {
-            await launch(url);
-          } else {
-            throw 'Could not launch $url';
-          }
+      body: WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(),
+            ),
+          );
+          return false;
         },
-        child: Center(
-          child: Text(
-            url,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: Colors.blue,
+        child: GestureDetector(
+          onTap: () async {
+            var uri = Uri.parse(url);
+            if (!await launchUrl(uri)) {
+              throw 'Could not';
+            }
+          },
+          child: Center(
+            child: Text(
+              url,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                color: Colors.blue,
+              ),
             ),
           ),
         ),

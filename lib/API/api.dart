@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const domain = "https://tmm.tastysoft.co";
 
 class API {
-  loginUser(email, name ,password) async {
+  loginUser(email, password) async {
     final prefs = await SharedPreferences.getInstance();
     // String userId = prefs.getInt("userId").toString();
     try {
@@ -17,7 +17,6 @@ class API {
       var body = jsonEncode({
         // "userId": userID,
         'email': email,
-        'name': name,
         'password': password,
       });
       print(body);
@@ -26,6 +25,7 @@ class API {
         Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
+          
         },
         body: body,
       );
@@ -35,7 +35,7 @@ class API {
     }
   }
 
-  registerUser(email, name ,password) async {
+  registerUser(email, name, password) async {
     try {
       var url = "$domain/api/v1/users/register";
       var body = jsonEncode({
@@ -50,6 +50,29 @@ class API {
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  updateUser(email, name, profile, userId) async {
+    try {
+      var url = "$domain/api/v1/users/$userId";
+      var body = jsonEncode({
+        'email': email,
+        'name': name,
+        'profile': profile,
+      });
+      print(body);
+      print(url);
+      var response = await http.patch(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
         },
         body: body,
       );
@@ -227,7 +250,7 @@ class API {
   getAllNotesApi(categoryId) async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/api/v1/notes/categoryId/$categoryId"),
+        Uri.parse("$domain/api/v1/notes/userId/$userID/categoryId/$categoryId"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -648,13 +671,12 @@ class API {
     }
   }
 
-  setNewPws(email, otp, newPassword) async {
+  verify(email, otp) async {
     try {
-      var url = "$domain/api/v1/users/forgotPassword/verifyandsetnewpassword";
+      var url = "$domain/api/v1/users/forgotPassword/emailverify";
       var body = jsonEncode({
         'email': email,
         'otp': otp,
-        "newPassword" : newPassword
       });
       print(body);
       print(url);
@@ -671,10 +693,30 @@ class API {
     }
   }
 
-   getDefaultCategoryApi() async {
+  setNewPws(email, otp, newPassword) async {
+    try {
+      var url = "$domain/api/v1/users/forgotPassword/updatedpassword";
+      var body =
+          jsonEncode({'email': email, 'otp': otp, "newPassword": newPassword});
+      print(body);
+      print(url);
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: body,
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  getDefaultCategoryApi() async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/api/v1/defaultnotecategories"),
+        Uri.parse("$domain/api/v1/note-categories/defcategories?default=true"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',

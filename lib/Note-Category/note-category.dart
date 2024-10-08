@@ -5,8 +5,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/API/api.dart';
-import 'package:law_diary/API/model.dart';
-import 'package:law_diary/Note-Category/create-category.dart';
 import 'package:law_diary/Notes/notes.dart';
 import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
@@ -29,27 +27,20 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
   bool ready = false;
   bool isLoading = false;
 
-  defCategories()async{
-    final defaultresponse = await API().getDefaultCategoryApi();
-    final defaultres = jsonDecode(defaultresponse.body);
-    List defCategory = defaultres['data'];
-      if (defaultresponse.statusCode == 200){
-        if (defCategory.isNotEmpty) {
-        for (var i = 0; i < defCategory.length; i++) {
-          mycategory.add(defCategory[i]);
-          print("mycategory++++++===$mycategory");
-        }
-      } else if (defaultresponse.statusCode == 400) {
-        mycategory = [];
-
-        showToast(context, defaultres['message'], Colors.red);
-      }
-      }
+  defCategories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString('defaultcategories');
+    List<dynamic> jsonData = jsonDecode(jsonString!);
+    List<Map<String, dynamic>> categoryList =
+        jsonData.cast<Map<String, dynamic>>();
+    mycategory = categoryList;
+    print("++++++++++++${mycategory}");
+    getcategory();
+    setState(() {});
   }
 
   getcategory() async {
     isLoading = true;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     final response = await API().getAllNotesCategoryApi();
     final res = jsonDecode(response.body);
     print('>>>>>>>>>>>>>>>>>>>>>>$response');
@@ -62,7 +53,6 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
         }
       } else if (response.statusCode == 400) {
         mycategory = [];
-
         showToast(context, res['message'], Colors.red);
       }
     }
@@ -74,9 +64,48 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
   @override
   void initState() {
     defCategories();
-    getcategory();
     super.initState();
+    setState(() {
+      // ready = true;
+    });
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       leading: BackButton(
+  //         color: darkmain,
+  //         onPressed: () {
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) => const HomeScreen(),
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //       title: Text("hello"),
+  //     ),
+  //     body: ListView.builder(
+  //       shrinkWrap: true,
+  //         itemCount: mycategory.length,
+  //         itemBuilder: (ctx, index) {
+  //           return Container(
+  //             width: 40,
+  //             height: 40,
+  //             decoration: BoxDecoration(
+  //               color: Colors.blue,
+  //               borderRadius: BorderRadius.circular(10),
+  //             ),
+  //             child: Text(
+  //               mycategory[index]['categoryName'],
+  //               style: TextStyle(color: Colors.red),
+  //             ),
+  //           );
+  //         }),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +150,7 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                 lineWidth: 3,
                 color: maincolor,
               )
-            : mycategory.isEmpty
+            : mycategory!.isEmpty
                 ? Center(
                     child: Text(
                       "Empty",
@@ -138,9 +167,12 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                         height: MediaQuery.of(context).size.height,
                         width: MediaQuery.of(context).size.width,
                         child: ListView.builder(
-                          itemCount: mycategory.length,
+                          itemCount: mycategory!.length,
                           itemBuilder: (context, i) {
                             return Slidable(
+                              enabled: mycategory[i]['default'] == true
+                                  ? false
+                                  : true,
                               endActionPane: ActionPane(
                                 // extentRatio: 0.26,
                                 motion: const StretchMotion(),
@@ -150,9 +182,9 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                       setState(() {
                                         print(">>>>> my data");
                                         var mydata = jsonEncode({
-                                          "categoryId": mycategory[i]
+                                          "categoryId": mycategory![i]
                                               ['categoryId'],
-                                          "categoryName": mycategory[i]
+                                          "categoryName": mycategory![i]
                                               ['categoryName'],
                                         });
                                         print(">>>>> my data");
@@ -191,7 +223,7 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                mycategory[i]['categoryId'] ==
+                                                mycategory![i]['categoryId'] ==
                                                         selectedcategory?[0]
                                                             ['categoryId']
                                                     ? const Text(
@@ -238,7 +270,7 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                                       onPressed: () async {
                                                         // Navigator.pop(context);
                                                         await deleteNoteCategory(
-                                                          mycategory[i]
+                                                          mycategory![i]
                                                               ['categoryId'],
                                                         );
                                                         setState(() {
@@ -272,7 +304,7 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                                 ],
                               ),
                               child: NoteCategoryModel(
-                                eachnotecategory: mycategory[i],
+                                eachnotecategory: mycategory![i],
                               ),
                             );
                           },
@@ -281,29 +313,15 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                     ),
                   ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: darkmain,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateCategory(),
-            ),
-          );
-        },
-        label: Text(
-          'Add',
-          style: GoogleFonts.poppins(color: seccolor),
-        ),
-        icon: Icon(
-          Icons.add,
-          color: seccolor,
-        ),
-      ),
       // floatingActionButton: FloatingActionButton.extended(
       //   backgroundColor: darkmain,
       //   onPressed: () {
-      //     _showDialog(context);
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => const CreateCategory(),
+      //       ),
+      //     );
       //   },
       //   label: Text(
       //     'Add',
@@ -314,6 +332,20 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
       //     color: seccolor,
       //   ),
       // ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: darkmain,
+        onPressed: () {
+          _showDialog(context);
+        },
+        label: Text(
+          'Add',
+          style: GoogleFonts.poppins(color: seccolor),
+        ),
+        icon: Icon(
+          Icons.add,
+          color: seccolor,
+        ),
+      ),
     );
   }
 
@@ -328,10 +360,21 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
             style: GoogleFonts.poppins(color: seccolor),
           ),
           content: TextFormField(
+            style: TextStyle(color: seccolor),
+            keyboardType: TextInputType.name,
+            minLines: 1,
+            maxLines: 10,
             decoration: InputDecoration(
-              hintText: 'Enter category name',
-              hintStyle: TextStyle(color: seccolor),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: fifthcolor),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: fifthcolor),
+              ),
+              labelText: 'ခေါင်းစဉ်',
+              labelStyle: TextStyle(color: fifthcolor),
             ),
+            controller: _categorynameController,
           ),
           actions: [
             // ElevatedButton(
@@ -364,7 +407,7 @@ class _NoteCategoryScreenState extends State<NoteCategoryScreen> {
                       color: maincolor,
                     )
                   : Text(
-                      'Add',
+                      'Done',
                       style: GoogleFonts.poppins(),
                     ),
             ),
@@ -445,6 +488,7 @@ class _NoteCategoryModelState extends State<NoteCategoryModel> {
 
   @override
   void initState() {
+    print(widget.eachnotecategory);
     setState(() {
       _eachnotecategory = widget.eachnotecategory;
       print("-----------$_eachnotecategory");
@@ -545,7 +589,7 @@ class _NoteCategoryModelState extends State<NoteCategoryModel> {
               height: 0,
               indent: 30,
             ),
-          )
+          ),
         ],
       ),
     );

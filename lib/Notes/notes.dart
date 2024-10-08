@@ -90,7 +90,7 @@ class _NotesScreenState extends State<NotesScreen> {
           },
         ),
         title: Text(
-          ' မှတ်ချက်',
+          'မှတ်ချက်',
           style: GoogleFonts.poppins(
             fontSize: 17,
             color: darkmain,

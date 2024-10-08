@@ -352,7 +352,7 @@ class _CreateDiaryDetailsState extends State<CreateDiaryDetails> {
                       ),
                     ),
                   ),
-                  const SizedBox(
+                   const SizedBox(
                     width: 10,
                   ),
                 ],

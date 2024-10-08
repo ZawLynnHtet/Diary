@@ -293,7 +293,7 @@ class _DiaryModelState extends State<DiaryModel> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 20, top: 10),
+                      padding: const EdgeInsets.only(left: 0, top: 10),
                       child: Image.asset(
                         'images/lawbg.png',
                         width: 100,

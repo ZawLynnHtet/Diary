@@ -91,28 +91,29 @@ class _CreateLawCategoryState extends State<CreateLawCategory> {
               }
             },
             child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 6, 5, 6),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: isLoading
-                        ? const SpinKitRing(
-                            size: 23,
-                            lineWidth: 3,
-                            color: Colors.black,
-                          )
-                        : Text(
-                            'Add',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                            ),
+              padding: const EdgeInsets.fromLTRB(0, 6, 5, 6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: isLoading
+                      ? const SpinKitRing(
+                          size: 23,
+                          lineWidth: 3,
+                          color: Colors.black,
+                        )
+                      : Text(
+                          'Add',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
                           ),
-                  ),
-                )),
-          )
+                        ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -238,7 +239,8 @@ class _CreateLawCategoryState extends State<CreateLawCategory> {
                                                     style: TextStyle(
                                                       color: seccolor,
                                                       fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                     ),
                                                   )),
                                               TextButton(

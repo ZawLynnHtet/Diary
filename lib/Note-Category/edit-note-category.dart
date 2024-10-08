@@ -125,7 +125,8 @@ class _EditNoteCategoryState extends State<EditNoteCategory> {
                     child: TextFormField(
                       style: TextStyle(color: backcolor),
                       keyboardType: TextInputType.name,
-                      maxLines: 2,
+                      minLines: 1,
+                      maxLines: 10,
                       decoration: InputDecoration(
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(color: fifthcolor),

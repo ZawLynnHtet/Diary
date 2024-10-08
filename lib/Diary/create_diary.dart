@@ -387,6 +387,42 @@ class _CreateDiaryState extends State<CreateDiary> {
               const SizedBox(
                 height: 15,
               ),
+              pdfvalue != ""
+                  ? Container(
+                      color: darkmain,
+                      margin: const EdgeInsets.only(left: 10, right: 10),
+                      padding: const EdgeInsets.all(8.0),
+                      width: MediaQuery.of(context).size.width,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            "images/pdfforview.png",
+                            width: 20,
+                            height: 20,
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Expanded(
+                            child: Text(
+                              pdfvalue,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(),
+              pdfvalue != ""
+                  ? const SizedBox(
+                      height: 15,
+                    )
+                  : Container(),
               Row(
                 children: [
                   const SizedBox(
@@ -409,7 +445,7 @@ class _CreateDiaryState extends State<CreateDiary> {
                             'Select File',
                             style: GoogleFonts.poppins(
                               color: seccolor,
-                              fontSize: 20,
+                              fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -465,7 +501,7 @@ class _CreateDiaryState extends State<CreateDiary> {
                                   'Create',
                                   style: GoogleFonts.poppins(
                                     color: seccolor,
-                                    fontSize: 20,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

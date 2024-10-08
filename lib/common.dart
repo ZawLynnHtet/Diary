@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:law_diary/API/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Color seccolor = Colors.black;
 
@@ -39,3 +43,29 @@ TextStyle buttonTextStyle =
 
 TextStyle firstTextstyle = GoogleFonts.poppins(
     color: seccolor, fontSize: 14, fontWeight: FontWeight.w400);
+
+// defaultCategoryName() async {
+//   // final prefs = await SharedPreferences.getInstance();
+//   SharedPreferences prefs = await SharedPreferences.getInstance();
+
+//   final response = await API().getDefaultCategoryApi();
+//   final defCategory = jsonDecode(response.body);
+//   if (response.statusCode == 200) {
+//     List<Map<String, dynamic>> _defCategories = defCategory['data'];
+//     await prefs.setString("defaultcategories", jsonEncode(_defCategories));
+//   } else if (response.statusCode != 200) {
+//     // ignore: use_build_context_synchronously
+//   }
+// }
+void defaultCategoryName() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final response = await API().getDefaultCategoryApi();
+  final defCategory = jsonDecode(response.body);
+  if (response.statusCode == 200) {
+    List<dynamic> jsonData = defCategory['data'];
+    List<Map<String, dynamic>> _defCategories = jsonData.cast<Map<String, dynamic>>();
+    await prefs.setString("defaultcategories", jsonEncode(_defCategories));
+  } else if (response.statusCode != 200) {
+    // handle error here
+  }
+}
