@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:law_diary/API/api.dart';
 import 'package:law_diary/API/model.dart';
 import 'package:law_diary/Diary/create_diary.dart';
-import 'package:law_diary/Diary/diary_details.dart';
 import 'package:law_diary/common.dart';
-import 'package:law_diary/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class DailyDiaryPage extends StatefulWidget {
   const DailyDiaryPage({super.key});
@@ -19,69 +19,84 @@ class DailyDiaryPage extends StatefulWidget {
 
 class _DailyDiaryPageState extends State<DailyDiaryPage> {
   List<diarylistmodel> mydiary = [];
-  diarylistmodel? selecteddiary;
-
-  bool ready = false;
   bool isLoading = false;
+  DateTime _selectedDate = DateTime.now();
+  Map<DateTime, List<diarylistmodel>> _diariesByDate = {};
 
-  getdiary() async {
-    isLoading = true;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+  Future<void> getdiary() async {
+    setState(() {
+      isLoading = true;
+    });
+
     final response = await API().getAllDiariesApi();
     final res = jsonDecode(response.body);
-    print('_____________>>>>>>>>>>>>>>>response body ${res}');
-    print('>>>>>>>>>>>>>>>>>>>>>>$response');
+
     if (response.statusCode == 200) {
       List diaryList = res['data'];
-      print("----------------");
-      print('>>>>>>>>>>>>>>> diary list$diaryList');
-      if (diaryList.isNotEmpty) {
-        for (var i = 0; i < diaryList.length; i++) {
-          setState(() {
-            mydiary.add(
-              diarylistmodel(
-                diaryId: diaryList[i]['diaryId'] ?? "",
-                clientName: diaryList[i]['clientName'] ?? "",
-                cause: diaryList[i]['cause'] ?? "",
-                causeNum: diaryList[i]["causeNum"] ?? "",
-                causeType: diaryList[i]["causeType"] ?? "",
-              ),
-            );
-          });
-        }
-      } else if (response.statusCode == 400) {
-        setState(() {
-          mydiary = [];
-        });
-        showToast(context, res['message'], Colors.red);
-      }
+      setState(() {
+        mydiary = diaryList.map((diary) {
+          final diaryDate =
+              DateTime.parse(diary['appointment'] ?? DateTime.now().toString());
+          _diariesByDate[diaryDate] = [
+            ...(_diariesByDate[diaryDate] ?? []),
+            diarylistmodel(
+              diaryid: diary['diaryid'] ?? "",
+              clientname: diary['clientname'] ?? "",
+              action: diary['action'] ?? "",
+              todo: diary["todo"] ?? "",
+              causenum: diary["causenum"] ?? "",
+              appointment: diary["appointment"] ?? "",
+            )
+          ];
+          return diarylistmodel(
+            diaryid: diary['diaryid'] ?? "",
+            clientname: diary['clientname'] ?? "",
+            action: diary['action'] ?? "",
+            todo: diary["todo"] ?? "",
+            causenum: diary["causenum"] ?? "",
+            appointment: diary["appointment"] ?? "",
+          );
+        }).toList();
+      });
+    } else {
+      showToast(context, res['message'], Colors.red);
     }
+
     setState(() {
       isLoading = false;
     });
   }
 
+  List<diarylistmodel> _getEventsForDay(DateTime day) {
+    return mydiary
+        .where((diary) =>
+            diary.appointment.isNotEmpty &&
+            DateFormat('yyyy-MM-dd')
+                    .format(DateTime.parse(diary.appointment)) ==
+                DateFormat('yyyy-MM-dd').format(day))
+        .toList();
+  }
+
   @override
   void initState() {
-    getdiary();
     super.initState();
+    setState(() {
+      getdiary();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: thirdcolor,
+      backgroundColor: maincolor,
       appBar: AppBar(
-        backgroundColor: thirdcolor,
+        backgroundColor: maincolor,
         elevation: 0,
         leading: BackButton(
           color: darkmain,
           onPressed: () {
-            Navigator.push(
+            Navigator.pop(
               context,
-              MaterialPageRoute(
-                builder: (context) => const HomeScreen(),
-              ),
             );
           },
         ),
@@ -94,311 +109,312 @@ class _DailyDiaryPageState extends State<DailyDiaryPage> {
           ),
         ),
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeScreen(),
-            ),
-          );
-          return false;
-        },
-        child: isLoading
-            ? SpinKitRing(
-                size: 23,
-                lineWidth: 3,
-                color: maincolor,
-              )
-            : mydiary.isEmpty
-                ? Center(
-                    child: Text(
+      body: isLoading
+          ? SpinKitRing(
+              size: 23,
+              lineWidth: 3,
+              color: fifthcolor,
+            )
+          : mydiary.isEmpty
+              ? Center(
+                  child: Text(
                     "Empty",
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: fifthcolor,
                     ),
-                  ))
-                : SingleChildScrollView(
-                    child: Column(
-                    children: [
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: mydiary.length,
-                        itemBuilder: (context, i) {
-                          return DiaryModel(eachdiary: mydiary[i]);
+                  ),
+                )
+              : Column(
+                  children: [
+                    TableCalendar(
+                      locale: 'en-US',
+                      rowHeight: 60,
+                      focusedDay: _selectedDate,
+                      firstDay: DateTime(2000),
+                      lastDay: DateTime(2100),
+                      calendarFormat: CalendarFormat.month,
+                      availableGestures: AvailableGestures.all,
+                      selectedDayPredicate: (day) =>
+                          isSameDay(_selectedDate, day),
+                      onDaySelected: (selectedDay, focusedDay) {
+                        setState(() {
+                          _selectedDate = selectedDay;
+                        });
+                        // final diariesForSelectedDate =
+                        //     _getEventsForDay(selectedDay);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const CreateDiary()),
+                        );
+                      },
+                      calendarStyle: CalendarStyle(
+                        cellMargin:
+                            EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                        defaultTextStyle: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                        weekendTextStyle: TextStyle(
+                          fontSize: 16,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        selectedDecoration: BoxDecoration(
+                          color: Colors.blue,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 10,
+                              offset: Offset(2, 2),
+                            ),
+                          ],
+                        ),
+                        todayDecoration: BoxDecoration(
+                          color: Colors.lightBlueAccent.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: Colors.blueAccent, width: 2),
+                        ),
+                        markerDecoration: BoxDecoration(
+                          color: Colors.deepOrangeAccent,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      headerStyle: HeaderStyle(
+                        formatButtonVisible: false,
+                        titleCentered: true,
+                        titleTextStyle: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: darkmain,
+                        ),
+                        leftChevronIcon: Icon(
+                          Icons.chevron_left,
+                          color: darkmain,
+                          size: 32,
+                        ),
+                        rightChevronIcon: Icon(
+                          Icons.chevron_right,
+                          color: darkmain,
+                          size: 32,
+                        ),
+                      ),
+                      daysOfWeekStyle: DaysOfWeekStyle(
+                        weekdayStyle: TextStyle(
+                          fontSize: 16,
+                          color: Colors.blueGrey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        weekendStyle: TextStyle(
+                          fontSize: 16,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      calendarBuilders: CalendarBuilders(
+                        markerBuilder: (context, day, events) {
+                          if (events.isNotEmpty) {
+                            return Positioned(
+                              bottom: 6,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: Colors.deepOrangeAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            );
+                          }
+                          return null;
                         },
                       ),
-                      const SizedBox(
-                        height: 50,
+                      eventLoader: (day) => _diariesByDate[day] ?? [],
+                    ),
+                    const SizedBox(height: 10.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'ဒိုင်ယာရီများ',
+                            style: TextStyle(
+                                color: darkmain,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'အသေးစိတ်ကြည့်ရန်..',
+                            style: TextStyle(color: Colors.blue, fontSize: 16),
+                          ),
+                        ],
                       ),
-                    ],
-                  )),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
+                    ),
+                    const SizedBox(height: 10.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            headingRowColor: MaterialStateColor.resolveWith(
+                                (states) => Colors.grey.shade200),
+                            dataRowColor: MaterialStateColor.resolveWith(
+                                (states) => Colors.grey.shade50),
+                            border: TableBorder.all(
+                                color: Colors.grey.shade300, width: 1),
+                            headingTextStyle: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: darkmain,
+                            ),
+                            dataTextStyle: GoogleFonts.poppins(
+                              fontSize: 15,
+                              color: Colors.black87,
+                            ),
+                            columnSpacing: 20,
+                            horizontalMargin: 10,
+                            columns: const [
+                              DataColumn(label: Text("Client Name")),
+                              DataColumn(label: Text("Action")),
+                              DataColumn(label: Text("ToDo")),
+                              DataColumn(label: Text("No")),
+                              DataColumn(label: Text("Appointment")),
+                              DataColumn(label: Text("Edit")),
+                              DataColumn(label: Text("Delete")),
+                            ],
+                            rows: mydiary
+                                .map((diary) => DataRow(cells: [
+                                      DataCell(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Text(diary.clientname),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Text(diary.action),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Text(diary.todo),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Text(diary.causenum),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Text(
+                                            diary.appointment.isNotEmpty
+                                                ? DateFormat('yyyy-MM-dd')
+                                                    .format(DateTime.parse(
+                                                        diary.appointment))
+                                                : 'No Appointment',
+                                          ),
+                                        ),
+                                      ),
+                                      // Edit Button
+                                      DataCell(
+                                        IconButton(
+                                          icon: Icon(Icons.edit,
+                                              color: Colors.blue),
+                                          onPressed: () {
+                                            // TODO: Add edit functionality here
+                                            print(
+                                                'Edit diary: ${diary.diaryid}');
+                                          },
+                                        ),
+                                      ),
+                                      // Delete Button
+                                      DataCell(
+                                        IconButton(
+                                          icon: Icon(Icons.delete,
+                                              color: Colors.red),
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: Text(
+                                                  'Are you sure to Delete?',
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 16),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text(
+                                                      'No',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                              fontSize: 15),
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        deleteDiary(
+                                                            diary.diaryid);
+                                                      });
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                    child: Text(
+                                                      'Yes',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                              fontSize: 15,
+                                                              color:
+                                                                  Colors.red),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ]))
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+      floatingActionButton: FloatingActionButton(
+        // backgroundColor: darkmain,
         backgroundColor: darkmain,
+        foregroundColor: Colors.white,
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const CreateDiary(),
-            ),
+            MaterialPageRoute(builder: (context) => const CreateDiary()),
           );
         },
-        label: Text(
-          'Add',
-          style: GoogleFonts.poppins(color: seccolor),
-        ),
-        icon: Icon(Icons.add, color: seccolor),
-      ),
-    );
-  }
-}
-
-class DiaryModel extends StatefulWidget {
-  final diarylistmodel eachdiary;
-  const DiaryModel({
-    super.key,
-    required this.eachdiary,
-  });
-
-  @override
-  State<DiaryModel> createState() => _DiaryModelState();
-}
-
-class _DiaryModelState extends State<DiaryModel> {
-  List<diarylistmodel> mydiary = [];
-  bool isLoading = false;
-  PopupMenuItem _buildPopupMenuItem(String title, int position) {
-    return PopupMenuItem(
-      value: position,
-      child: Row(
-        children: [
-          Text(title),
-        ],
-      ),
-    );
-  }
-
-  _popUpWidget(diarylistmodel data) {
-    return PopupMenuButton(
-      icon: const Icon(
-        Icons.more_vert,
-        color: Colors.white,
-      ),
-      onSelected: (value) {
-        print("value : $value");
-        setState(() {});
-        if (value == 0) {
-        } else if (value == 1) {
-          print(">>>><<<<");
-          print(data.diaryId);
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    'No',
-                    style: GoogleFonts.poppins(fontSize: 15),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    deleteDiary(data.diaryId);
-                    setState(() {});
-                  },
-                  child: isLoading
-                      ? const SpinKitDoubleBounce(
-                          color: Colors.white,
-                          size: 15.0,
-                        )
-                      : Text(
-                          'Yes',
-                          style: GoogleFonts.poppins(
-                              fontSize: 15, color: Colors.red),
-                        ),
-                ),
-              ],
-              title: Text(
-                'Are you sure to Delete?',
-                style: GoogleFonts.poppins(fontSize: 16),
-              ),
-              contentPadding: const EdgeInsets.all(2.0),
-            ),
-          );
-        } else {
-          print("value >>>> : $value");
-        }
-      },
-      offset: Offset(
-        0.0,
-        AppBar().preferredSize.height,
-      ),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(8.0),
-          bottomRight: Radius.circular(8.0),
-          topLeft: Radius.circular(8.0),
-          topRight: Radius.circular(8.0),
-        ),
-      ),
-      itemBuilder: (contex) => [
-        _buildPopupMenuItem(
-          'Delete',
-          1,
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DiaryDetails(
-              diaryId: widget.eachdiary.diaryId,
-            ),
-          ),
-        );
-      },
-      child: Padding(
-        padding:
-            const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: fourthcolor,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: seccolor,
-                spreadRadius: 1,
-                blurRadius: 3,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 0, top: 10),
-                      child: Image.asset(
-                        'images/lawbg.png',
-                        width: 100,
-                        height: 100,
-                      ),
-                    ),
-                    _popUpWidget(widget.eachdiary),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'အမှုနံပါတ် :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
-                        ),
-                      ),
-                      Text(
-                        widget.eachdiary.causeNum,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: backcolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'အမှု :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
-                        ),
-                      ),
-                      Text(
-                        widget.eachdiary.cause,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: backcolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'အမှုသည် :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
-                        ),
-                      ),
-                      Text(
-                        widget.eachdiary.clientName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: backcolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'အမှုအမျိုးအစား :',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: maincolor,
-                        ),
-                      ),
-                      Text(
-                        widget.eachdiary.causeType,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          color: backcolor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 1,
-                )
-              ],
-            ),
-          ),
-        ),
+        child: Icon(Icons.add),
+        // label: Text('', style: GoogleFonts.poppins(color: seccolor)),
+        // icon: Icon(Icons.add, color: seccolor),
       ),
     );
   }
@@ -413,17 +429,6 @@ class _DiaryModelState extends State<DiaryModel> {
       print(">>>>>>>>>>> delete diary response body ${response.body}");
 
       print('>>>>>>>>>>>>>>>>>>>>>>>');
-      // ignore: use_build_context_synchronously
-      // Navigator.pushAndRemoveUntil(
-      //     context,
-      //     MaterialPageRoute(
-      //       builder: (context) => DailyDiaryPage(
-      //         userId: widget.userId,
-      //       ),
-      //     ),
-      //     (route) => false);
-      // showToast(context, res['message'], Colors.green);
-      // ignore: use_build_context_synchronously
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -440,32 +445,4 @@ class _DiaryModelState extends State<DiaryModel> {
     //   showToast('${result['returncode']}', 'red');
     setState(() {});
   }
-
-  // deleteDiary(id) async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   final response = await API().deleteDiaryApi(id);
-  //   var res = jsonDecode(response.body);
-  //   if (response.statusCode == 200) {
-  //     print(
-  //         ">>>>>>>>>>> delete diary response statusCode ${response.statusCode}");
-  //     print(">>>>>>>>>>> delete diary response body ${response.body}");
-
-  //     print('>>>>>>>>>>>>>>>>>>>>>>>');
-  //     // ignore: use_build_context_synchronously
-  //     Navigator.pop(context);
-  //     // showToast('successfully deleted', 'darkmain');
-  //     // ignore: use_build_context_synchronously
-
-  //     // ignore: use_build_context_synchronously
-  //     showToast(context, res['message'], Colors.green);
-  //   } else if (response.statusCode == 400) {
-  //     // ignore: use_build_context_synchronously
-  //     Navigator.pop(context);
-  //     // ignore: use_build_context_synchronously
-  //     showToast(context, res['message'], Colors.red);
-  //   }
-  //   //  Navigator.pop(context);
-  //   //   showToast('${result['returncode']}', 'red');
-  //   setState(() {});
-  // }
 }

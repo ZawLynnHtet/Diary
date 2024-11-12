@@ -340,14 +340,14 @@ class _EditDiaryState extends State<EditDiary> {
     if (response.statusCode == 200) {
       print("herer 0--");
       // ignore: use_build_context_synchronously
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DiaryDetails(
-            diaryId: editData["diaryId"],
-          ),
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => DiaryDetails(
+      //       diaryId: editData["diaryId"],
+      //     ),
+      //   ),
+      // );
       showToast(context, res['message'], Colors.green);
     } else if (response.statusCode == 400) {
       showToast(context, res['message'], Colors.red);

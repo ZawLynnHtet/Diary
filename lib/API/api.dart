@@ -6,14 +6,15 @@ import 'package:http/http.dart' as http;
 import 'package:law_diary/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const domain = "https://tmm.tastysoft.co";
+// const domain = "https://tmm.tastysoft.co";
+const domain = "http://192.168.1.18:8080";
 
 class API {
   loginUser(email, password) async {
     final prefs = await SharedPreferences.getInstance();
     // String userId = prefs.getInt("userId").toString();
     try {
-      var url = "$domain/api/v1/users/login";
+      var url = "$domain/lawdiary/users/login";
       var body = jsonEncode({
         // "userId": userID,
         'email': email,
@@ -25,7 +26,6 @@ class API {
         Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
-          
         },
         body: body,
       );
@@ -35,12 +35,12 @@ class API {
     }
   }
 
-  registerUser(email, name, password) async {
+  registerUser(name, email, password) async {
     try {
-      var url = "$domain/api/v1/users/register";
+      var url = "$domain/lawdiary/users/register";
       var body = jsonEncode({
-        'email': email,
         'name': name,
+        'email': email,
         'password': password,
       });
       print(url);
@@ -85,13 +85,12 @@ class API {
   getAllDiariesApi() async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/api/v1/diaries/userid/$userID"),
+        Uri.parse("$domain/lawdiary/diaries/getalldiaries/userid/$userID"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
         },
       );
-      print(response.body);
       return response;
     } catch (error) {
       print(error.toString());
@@ -107,7 +106,6 @@ class API {
           'Authorization': 'Bearer $token',
         },
       );
-      print(response.body);
       return response;
     } catch (error) {
       print(error.toString());
@@ -130,20 +128,16 @@ class API {
     }
   }
 
-  createDiaryApi(
-    causeNum,
-    cause,
-    clientName,
-    causeType,
-  ) async {
+  createDiaryApi(clientname, action, todo, causenum, appointment) async {
     try {
-      var url = "$domain/api/v1/diaries";
+      var url = "$domain/lawdiary/diaries/creatediray";
       var body = jsonEncode({
-        "userId": userID,
-        "causeNum": causeNum,
-        "cause": cause,
-        "clientName": clientName,
-        "causeType": causeType,
+        "userid": userID,
+        "clientname": clientname,
+        "action": action,
+        "todo": todo,
+        "causenum": causenum,
+        "appointment": appointment,
       });
       print("++++++++++--------- $body");
       print(">>>>>>>>>>> create diary url $url");
@@ -233,7 +227,7 @@ class API {
 
   deleteDiaryApi(id) async {
     try {
-      var url = "$domain/api/v1/diaries/$id";
+      var url = "$domain/lawdiary/diaries/deletediary/$id";
       var response = await http.delete(
         Uri.parse(url),
         headers: <String, String>{
@@ -331,6 +325,7 @@ class API {
   }
 
   getAllNotesCategoryApi() async {
+    print(">>>>> user id $userID");
     try {
       var response = await http.get(
         Uri.parse("$domain/api/v1/note-categories/userid/$userID"),
@@ -605,11 +600,11 @@ class API {
     }
   }
 
-  logoutUser(userId) async {
+  logoutUser(userid) async {
     try {
-      var url = "$domain/api/v1/users/logout";
+      var url = "$domain/lawdiary/users/logout";
       var body = jsonEncode({
-        'userId': userId,
+        'userid': userid,
       });
       print(body);
       print(url);
@@ -723,6 +718,37 @@ class API {
         },
       );
       print(response.body);
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  getAllBooks() async {
+    try {
+      var response = await http.get(
+        Uri.parse("$domain/lawdiary/lawbooks/getallbooks/userid/$userID"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  getAllSections(bookid) async {
+    try {
+      var response = await http.get(
+        Uri.parse("$domain/lawdiary/lawbooks/getallsections/bookid/$bookid"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
       return response;
     } catch (error) {
       print(error.toString());

@@ -15,7 +15,13 @@ Color thirdcolor = const Color.fromARGB(255, 33, 32, 32);
 
 Color maincolor = const Color(0xFFffffff);
 
-Color darkmain = const Color.fromARGB(255, 146, 121, 97);
+// Color menucardbgcolor = Color.fromARGB(255, 174, 143, 115);
+
+Color darkmain = const Color(0xFF372213);
+
+Color subcolor = const Color.fromARGB(255, 146, 121, 97);
+
+Color cardbgcolor = Color.fromARGB(255, 230, 230, 230);
 
 Color backcolor = const Color(0xFFF5F5F3);
 

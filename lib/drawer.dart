@@ -21,269 +21,270 @@ class _DrawerPageState extends State<DrawerPage> {
   bool isLoading = false;
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: thirdcolor,
-      child: ListView(
-        children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(
-              name,
-              style: GoogleFonts.poppins(fontSize: 16, color: maincolor),
+    return SafeArea(
+      // backgroundColor: thirdcolor,
+      child: Container(
+        child: ListView(
+          children: [
+            UserAccountsDrawerHeader(
+              accountName: Text(
+                name,
+                style: GoogleFonts.poppins(fontSize: 16, color: maincolor),
+              ),
+              accountEmail: Text(
+                email,
+                style: GoogleFonts.poppins(fontSize: 13, color: maincolor),
+              ),
+              currentAccountPicture: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    // Navigator.pushReplacement(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => const UploadProfile(),
+                    //   ),
+                    // );
+                  });
+                },
+                child: CircleAvatar(
+                  child: ClipOval(
+                    child: Text(
+                      name == '' ? "" : name[0].toUpperCase(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                      ),
+                    ),
+                    // child: Image.asset(
+                    //   'images/profile.jpg',
+                    //   height: 120,
+                    //   width: 120,
+                    //   fit: BoxFit.cover,
+                    // ),
+                  ),
+                ),
+
+                // CircleAvatar(
+                //   child: ClipOval(
+                //     child: Image.asset(
+                //       'images/profile.jpg',
+                //       height: 120,
+                //       width: 120,
+                //       fit: BoxFit.cover,
+                //     ),
+                //   ),
+                // ),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+              ),
             ),
-            accountEmail: Text(
-              email,
-              style: GoogleFonts.poppins(fontSize: 13, color: maincolor),
-            ),
-            currentAccountPicture: GestureDetector(
+            GestureDetector(
               onTap: () {
                 setState(() {
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => const UploadProfile(),
-                  //   ),
-                  // );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HomeScreen(),
+                    ),
+                  );
                 });
               },
-              child: CircleAvatar(
-                child: ClipOval(
-                  child: Text(
-                    name == '' ? "" : name[0].toUpperCase(),
-                    
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                    ),
-                  ),
-                  // child: Image.asset(
-                  //   'images/profile.jpg',
-                  //   height: 120,
-                  //   width: 120,
-                  //   fit: BoxFit.cover,
-                  // ),
-                ),
-              ),
-
-              // CircleAvatar(
-              //   child: ClipOval(
-              //     child: Image.asset(
-              //       'images/profile.jpg',
-              //       height: 120,
-              //       width: 120,
-              //       fit: BoxFit.cover,
-              //     ),
-              //   ),
-              // ),
-            ),
-            decoration: BoxDecoration(
-              color: thirdcolor,
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                );
-              });
-            },
-            child: ListTile(
-              leading: Icon(
-                Icons.home,
-                color: maincolor,
-              ),
-              title: Text(
-                'Home',
-                style: GoogleFonts.poppins(
+              child: ListTile(
+                leading: Icon(
+                  Icons.home,
                   color: maincolor,
                 ),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChangePsw(),
+                title: Text(
+                  'Home',
+                  style: GoogleFonts.poppins(
+                    color: maincolor,
                   ),
-                );
-              });
-            },
-            child: ListTile(
-              leading: Icon(
-                Icons.password,
-                color: maincolor,
-              ),
-              title: Text(
-                'Change Password',
-                style: GoogleFonts.poppins(
-                  color: maincolor,
                 ),
               ),
             ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    contentPadding: const EdgeInsets.only(
-                      left: 10,
-                      top: 15,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Are You sure to reset your password?",
-                          style: TextStyle(
-                            color: seccolor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                "No",
-                                style: GoogleFonts.poppins(
-                                  color: Colors.blue,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                forgotPsw();
-                                setState(() {});
-                              },
-                              child: Text(
-                                'Yes',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.red,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ChangePsw(),
                     ),
                   );
-                },
-              );
-            },
-            child: ListTile(
-              leading: Icon(
-                Icons.password,
-                color: maincolor,
-              ),
-              title: Text(
-                'Forgot Password',
-                style: GoogleFonts.poppins(
+                });
+              },
+              child: ListTile(
+                leading: Icon(
+                  Icons.password,
                   color: maincolor,
+                ),
+                title: Text(
+                  'Change Password',
+                  style: GoogleFonts.poppins(
+                    color: maincolor,
+                  ),
                 ),
               ),
             ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    contentPadding: const EdgeInsets.only(
-                      left: 10,
-                      top: 15,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Are You sure to Log Out?",
-                          style: TextStyle(
-                            color: seccolor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+            GestureDetector(
+              onTap: () async {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      contentPadding: const EdgeInsets.only(
+                        left: 10,
+                        top: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Are You sure to reset your password?",
+                            style: TextStyle(
+                              color: seccolor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                "No",
-                                style: GoogleFonts.poppins(
-                                  color: Colors.blue,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  "No",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.blue,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                logout();
-                              },
-                              child: Text(
-                                'Yes',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.red,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                              TextButton(
+                                onPressed: () {
+                                  forgotPsw();
+                                  setState(() {});
+                                },
+                                child: Text(
+                                  'Yes',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-            child: ListTile(
-              leading: Icon(
-                Icons.logout,
-                color: maincolor,
-              ),
-              title: Text(
-                'Log Out',
-                style: GoogleFonts.poppins(
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              child: ListTile(
+                leading: Icon(
+                  Icons.password,
                   color: maincolor,
+                ),
+                title: Text(
+                  'Forgot Password',
+                  style: GoogleFonts.poppins(
+                    color: maincolor,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+            GestureDetector(
+              onTap: () async {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      contentPadding: const EdgeInsets.only(
+                        left: 10,
+                        top: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Are You sure to Log Out?",
+                            style: TextStyle(
+                              color: seccolor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  "No",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.blue,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  logout();
+                                },
+                                child: Text(
+                                  'Yes',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              child: ListTile(
+                leading: Icon(
+                  Icons.logout,
+                  color: maincolor,
+                ),
+                title: Text(
+                  'Log Out',
+                  style: GoogleFonts.poppins(
+                    color: maincolor,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

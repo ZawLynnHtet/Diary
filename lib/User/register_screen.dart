@@ -259,10 +259,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _passwordController.text,
     );
     var res = jsonDecode(response.body);
-    print('>>>>>>>>>userId>>>>>>>>>><${res['user']['userId']}');
+    print('>>>>>>>>>userId>>>>>>>>>><${res['user']['userid']}');
     if (response.statusCode == 200) {
       token = res["token"];
-      userID = res['user']['userId'];
+      userID = res['user']['userid'];
       email = res['user']['email'];
       name = res['user']['name'];
       await prefs.setString("token", token.toString());

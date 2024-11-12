@@ -83,14 +83,14 @@ class _CreateDiaryDetailsState extends State<CreateDiaryDetails> {
         leading: BackButton(
           color: darkmain,
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DiaryDetails(
-                  diaryId: widget.diaryId,
-                ),
-              ),
-            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => DiaryDetails(
+            //       diaryId: widget.diaryId,
+            //     ),
+            //   ),
+            // );
           },
         ),
         title: Text(
@@ -104,14 +104,14 @@ class _CreateDiaryDetailsState extends State<CreateDiaryDetails> {
       ),
       body: WillPopScope(
         onWillPop: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DiaryDetails(
-                diaryId: widget.diaryId,
-              ),
-            ),
-          );
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => DiaryDetails(
+          //       diaryId: widget.diaryId,
+          //     ),
+          //   ),
+          // );
           return false;
         },
         child: SingleChildScrollView(
@@ -442,14 +442,14 @@ class _CreateDiaryDetailsState extends State<CreateDiaryDetails> {
     if (response.statusCode == 200) {
       print("herer 0--");
       // ignore: use_build_context_synchronously
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DiaryDetails(
-            diaryId: widget.diaryId,
-          ),
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => DiaryDetails(
+      //       diaryId: widget.diaryId,
+      //     ),
+      //   ),
+      // );
     } else if (response.statusCode == 400) {
       showToast(context, res['message'], Colors.red);
     }

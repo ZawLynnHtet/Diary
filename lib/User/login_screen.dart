@@ -234,20 +234,21 @@ class _LoginScreenState extends State<LoginScreen> {
       _emailController.text,
       _passwordController.text,
     );
+    print(response);
     var res = jsonDecode(response.body);
     if (response.statusCode == 200) {
       print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
-      print("+++++++++++${res['user']['userId']}");
+      print("+++++++++++${res['user']['userid']}");
       token = res["token"];
-      userID = res['user']['userId'];
+      userID = res['user']['userid'];
       email = res['user']['email'];
       name = res['user']['name'];
       await prefs.setString("token", token.toString());
-      await prefs.setString("userId", userID.toString());
+      await prefs.setString("userid", userID.toString());
       await prefs.setString('email', res['user']['email']);
       await prefs.setString('name', res['user']['name']);
       print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
-      print('>>>>>>>>>>>>>>>>>>>>>>>>.userId$userID');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.userid$userID');
       print('>>>>>>>>>>>>>>>>>>>>>>>>.email$email');
       print('>>>>>>>>>>>>>>>>>>>>>>>>.name$name');
       print(prefs.getString("token"));
@@ -270,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // ignore: use_build_context_synchronously
       showToast(context, res['message'], Colors.red);
     }
-    defaultCategoryName();
+    // defaultCategoryName();
     setState(() {
       isLoading = false;
     });

@@ -2,37 +2,42 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 
 class diarylistmodel {
-  String diaryId;
-  String clientName;
-  String cause;
-  String causeNum;
-  String causeType;
+  String diaryid;
+  String clientname;
+  String action;
+  String todo;
+  String causenum;
+  String appointment;
 
   diarylistmodel({
-    required this.diaryId,
-    required this.clientName,
-    required this.cause,
-    required this.causeNum,
-    required this.causeType,
+    required this.diaryid,
+    required this.clientname,
+    required this.action,
+    required this.todo,
+    required this.causenum,
+    required this.appointment,
   });
 
   factory diarylistmodel.fromJson(Map<String, dynamic> jsonData) {
     return diarylistmodel(
-        diaryId: jsonData['diaryId'],
-        // categoryId: jsonData['categoryId'],
-        clientName: jsonData['clientName'],
-        cause: jsonData['cause'],
-        causeNum: jsonData['causeNum'],
-        causeType: jsonData['causeType']);
+      diaryid: jsonData['diaryid'],
+      // categoryId: jsonData['categoryId'],
+      clientname: jsonData['clientname'],
+      action: jsonData['action'],
+      todo: jsonData['todo'],
+      causenum: jsonData['causenum'],
+      appointment: jsonData['appointment'],
+    );
   }
 
   static Map<String, dynamic> toMap(diarylistmodel music) => {
-        'diaryId': music.diaryId,
+        'diaryid': music.diaryid,
         // 'categoryId': music.categoryId,
-        'clientName': music.clientName,
-        'cause': music.cause,
-        'causeNum': music.causeNum,
-        'causeType': music.causeType,
+        'clientname': music.clientname,
+        'action': music.action,
+        'todo': music.todo,
+        'causenum': music.causenum,
+        'appointment': music.appointment,
       };
 
   static String encode(List<diarylistmodel> diaries) => json.encode(
@@ -53,69 +58,100 @@ class diarylistmodel {
       diarylistmodel.fromJson(json.decode(single));
 }
 
-class diarydetailslistmodel {
-  String detailsId;
-  String diaryId;
-  String actions;
-  String toDo;
-  String notes;
-  String startDate;
-  String appointment;
-  String pdffile;
-
-  diarydetailslistmodel({
-    required this.detailsId,
-    required this.diaryId,
-    required this.actions,
-    required this.toDo,
-    required this.notes,
-    required this.startDate,
-    required this.appointment,
-    required this.pdffile,
+class booklistmodel {
+  String bookid;
+  String title;
+  String createdAt;
+  String updatedAt;
+  booklistmodel({
+    required this.bookid,
+    required this.title,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
-  factory diarydetailslistmodel.fromJson(Map<String, dynamic> jsonData) {
-    return diarydetailslistmodel(
-      detailsId: jsonData['detailsId'],
-      diaryId: jsonData['diaryId'],
-      actions: jsonData['actions'],
-      toDo: jsonData['toDo'],
-      notes: jsonData['notes'],
-      startDate: jsonData['startDate'],
-      appointment: jsonData['appointment'],
-      pdffile: jsonData['url'],
+  factory booklistmodel.fromJson(Map<String, dynamic> jsonData) {
+    return booklistmodel(
+      bookid: jsonData['bookid'],
+      title: jsonData['title'],
+      createdAt: jsonData['createdAt'],
+      updatedAt: jsonData['updatedAt'],
     );
   }
 
-  static Map<String, dynamic> toMap(diarydetailslistmodel music) => {
-        'detailsId': music.diaryId,
-        'diaryId': music.diaryId,
-        'actions': music.actions,
-        'toDo': music.toDo,
-        'notes': music.notes,
-        'startDate': music.startDate,
-        'appointmentdate': music.appointment,
-        'url': music.pdffile,
+  static Map<String, dynamic> toMap(booklistmodel book) => {
+        'bookid': book.bookid,
+        'title': book.title,
+        'createdAt': book.createdAt,
+        'updatedAt': book.updatedAt,
       };
 
-  static String encode(List<diarydetailslistmodel> details) => json.encode(
+  static String encode(List<booklistmodel> details) => json.encode(
         details
             .map<Map<String, dynamic>>(
-                (eachdetails) => diarydetailslistmodel.toMap(eachdetails))
+                (eachdetails) => booklistmodel.toMap(eachdetails))
             .toList(),
       );
 
-  static List<diarydetailslistmodel> decode(String details) =>
+  static List<booklistmodel> decode(String details) =>
       (json.decode(details) as List<dynamic>)
-          .map<diarydetailslistmodel>(
-              (eachdetails) => diarydetailslistmodel.fromJson(eachdetails))
+          .map<booklistmodel>(
+              (eachdetails) => booklistmodel.fromJson(eachdetails))
           .toList();
 
-  static String sigleencode(diarydetailslistmodel single) =>
-      json.encode(diarydetailslistmodel.toMap(single));
+  static String sigleencode(booklistmodel single) =>
+      json.encode(booklistmodel.toMap(single));
   static diarylistmodel singledecode(dynamic single) =>
       diarylistmodel.fromJson(json.decode(single));
 }
+
+class sectionlistmodel {
+  late String sectionid;
+  late String sectionname;
+  late String createdAt;
+  late String updatedAt;
+  sectionlistmodel({
+    required this.sectionid,
+    required this.sectionname,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory sectionlistmodel.fromJson(Map<String, dynamic> jsonData) {
+    return sectionlistmodel(
+      sectionid: jsonData['sectionid'],
+      sectionname: jsonData['sectionname'],
+      createdAt: jsonData['createdAt'],
+      updatedAt: jsonData['updatedAt'], 
+    );
+  }
+
+  static Map<String, dynamic> toMap(sectionlistmodel book) => {
+        'sectionid': book.sectionid,
+        'sectionname': book.sectionname,
+        'createdAt': book.createdAt,
+        'updatedAt': book.updatedAt,
+      };
+
+  static String encode(List<sectionlistmodel> details) => json.encode(
+        details
+            .map<Map<String, dynamic>>(
+                (eachdetails) => sectionlistmodel.toMap(eachdetails))
+            .toList(),
+      );
+
+  static List<sectionlistmodel> decode(String details) =>
+      (json.decode(details) as List<dynamic>)
+          .map<sectionlistmodel>(
+              (eachdetails) => sectionlistmodel.fromJson(eachdetails))
+          .toList();
+
+  static String sigleencode(sectionlistmodel single) =>
+      json.encode(sectionlistmodel.toMap(single));
+  static diarylistmodel singledecode(dynamic single) =>
+      diarylistmodel.fromJson(json.decode(single));
+}
+
 
 class notelistmodel {
   String categoryId;
