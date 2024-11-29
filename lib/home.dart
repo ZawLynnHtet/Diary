@@ -1,306 +1,17 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:law_diary/Books/books.dart';
-// import 'package:law_diary/Diary/daily_diary.dart';
-// import 'package:law_diary/Note-Category/note-category.dart';
-// import 'package:law_diary/User/logregistertest.dart';
-// import 'package:law_diary/common.dart';
-// import 'package:law_diary/drawer.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
-
-// class HomeScreen extends StatefulWidget {
-//   const HomeScreen({super.key});
-
-//   @override
-//   State<HomeScreen> createState() => _HomeScreenState();
-// }
-
-// class _HomeScreenState extends State<HomeScreen> {
-//   @override
-//   Widget build(BuildContext context) {
-//     var size = MediaQuery.of(context).size;
-//     return Scaffold(
-//       backgroundColor: const Color(0xFFF5F5F3),
-//       appBar: AppBar(
-//         backgroundColor: fourthcolor,
-//         elevation: 0,
-//       ),
-//       drawer: const DrawerPage(),
-//       body: WillPopScope(
-//         onWillPop: () async {
-//           SystemNavigator.pop();
-//           return false;
-//         },
-//         child: Stack(
-//           children: [
-//             Container(
-//               height: size.height * .4,
-//               decoration: BoxDecoration(
-//                 color: fourthcolor,
-//               ),
-//             ),
-//             SafeArea(
-//               child: Padding(
-//                 padding: const EdgeInsets.symmetric(horizontal: 20),
-//                 child: Column(
-//                   children: [
-//                     Container(
-//                       margin: const EdgeInsets.symmetric(vertical: 40),
-//                       alignment: Alignment.topLeft,
-//                       child: Text(
-//                         'Hello!\nHow  is  your  day?',
-//                         style: GoogleFonts.poppins(
-//                           color: maincolor,
-//                           fontSize: 25,
-//                           fontWeight: FontWeight.w900,
-//                         ),
-//                       ),
-//                     ),
-//                     // Container(
-//                     //   margin: const EdgeInsets.symmetric(vertical: 40),
-//                     //   alignment: Alignment.topLeft,
-//                     //   child: Text(
-//                     //     'Log Out',
-//                     //     style: GoogleFonts.poppins(
-//                     //       color: maincolor,
-//                     //       fontSize: 25,
-//                     //       fontWeight: FontWeight.w900,
-//                     //     ),
-//                     //   ),
-//                     // ),
-//                     Container(
-//                       margin: const EdgeInsets.symmetric(vertical: 20),
-//                       alignment: Alignment.topLeft,
-//                       child: Text(
-//                         'Law is a set of rules that are created and are enforceable by social or governmental institutions to regulate behavior.',
-//                         style: GoogleFonts.poppins(
-//                           color: fifthcolor,
-//                           fontSize: 13,
-//                           fontWeight: FontWeight.w600,
-//                         ),
-//                       ),
-//                     ),
-//                     Expanded(
-//                       child: GridView.count(
-//                         crossAxisCount: 2,
-//                         crossAxisSpacing: 20,
-//                         mainAxisSpacing: 20,
-//                         // childAspectRatio: .85,
-//                         children: [
-//                           GestureDetector(
-//                             onTap: () {
-//                               setState(() {
-//                                 Navigator.pushReplacement(
-//                                   context,
-//                                   MaterialPageRoute(
-//                                     builder: (context) =>
-//                                         const DailyDiaryPage(),
-//                                   ),
-//                                 );
-//                               });
-//                             },
-//                             child: Container(
-//                               decoration: BoxDecoration(
-//                                 color: Colors.white,
-//                                 borderRadius: BorderRadius.circular(20),
-//                                 boxShadow: [
-//                                   BoxShadow(
-//                                     color: fourthcolor,
-//                                     spreadRadius: 1,
-//                                     blurRadius: 3,
-//                                     offset: const Offset(0, 0),
-//                                   ),
-//                                 ],
-//                               ),
-//                               child: Column(
-//                                 children: [
-//                                   Container(
-//                                     child: Image.asset(
-//                                       'images/diary.png',
-//                                       height: 120,
-//                                       width: 100,
-//                                     ),
-//                                   ),
-//                                   Text(
-//                                     'နေ့စဉ်မှတ်တမ်း',
-//                                     style: GoogleFonts.poppins(
-//                                       fontSize: 18,
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ),
-//                           GestureDetector(
-//                             onTap: () {
-//                               Navigator.push(
-//                                 context,
-//                                 MaterialPageRoute(
-//                                   builder: (context) =>
-//                                       const NoteCategoryScreen(),
-//                                 ),
-//                               );
-//                             },
-//                             child: Container(
-//                               decoration: BoxDecoration(
-//                                 color: Colors.white,
-//                                 borderRadius: BorderRadius.circular(20),
-//                                 boxShadow: [
-//                                   BoxShadow(
-//                                     color: fourthcolor,
-//                                     spreadRadius: 1,
-//                                     blurRadius: 3,
-//                                     offset: const Offset(0, 0),
-//                                   ),
-//                                 ],
-//                               ),
-//                               child: Column(
-//                                 children: [
-//                                   Container(
-//                                     child: Image.asset(
-//                                       'images/notes.png',
-//                                       height: 120,
-//                                       width: 200,
-//                                     ),
-//                                   ),
-//                                   Text(
-//                                     'မှတ်ချက်',
-//                                     style: GoogleFonts.poppins(
-//                                       fontSize: 18,
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ),
-//                           GestureDetector(
-//                             onTap: () {
-//                               Navigator.push(
-//                                 context,
-//                                 MaterialPageRoute(
-//                                   builder: (context) => const BooksScreen(),
-//                                 ),
-//                               );
-//                             },
-//                             child: Container(
-//                               decoration: BoxDecoration(
-//                                 color: Colors.white,
-//                                 borderRadius: BorderRadius.circular(20),
-//                                 boxShadow: [
-//                                   BoxShadow(
-//                                     color: fourthcolor,
-//                                     spreadRadius: 1,
-//                                     blurRadius: 3,
-//                                     offset: const Offset(0, 0),
-//                                   ),
-//                                 ],
-//                               ),
-//                               child: Column(
-//                                 children: [
-//                                   Container(
-//                                     child: Image.asset(
-//                                       'images/books.png',
-//                                       height: 120,
-//                                       width: 200,
-//                                     ),
-//                                   ),
-//                                   Text(
-//                                     'ဥပဒေစာအုပ်များ',
-//                                     style: GoogleFonts.poppins(
-//                                       fontSize: 18,
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ),
-//                           GestureDetector(
-//                             onTap: () {},
-//                             child: Container(
-//                               decoration: BoxDecoration(
-//                                 color: Colors.white,
-//                                 borderRadius: BorderRadius.circular(20),
-//                                 boxShadow: [
-//                                   BoxShadow(
-//                                     color: fourthcolor,
-//                                     spreadRadius: 1,
-//                                     blurRadius: 3,
-//                                     offset: const Offset(0, 0),
-//                                   ),
-//                                 ],
-//                               ),
-//                               child: Column(
-//                                 children: [
-//                                   Center(
-//                                     child: Text(
-//                                       'တခြားအကြောင်းအရာများ',
-//                                       maxLines: 1,
-//                                       overflow: TextOverflow.ellipsis,
-//                                       style: GoogleFonts.poppins(
-//                                         fontSize: 16,
-//                                       ),
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ),
-//                           // GestureDetector(
-//                           //   onTap: () async {
-//                           //     final prefs =
-//                           //         await SharedPreferences.getInstance();
-//                           //     await prefs.clear();
-//                           //     setState(() {
-//                           //       Navigator.pushReplacement(
-//                           //         context,
-//                           //         MaterialPageRoute(
-//                           //           builder: (context) => const LogRegister(),
-//                           //         ),
-//                           //       );
-//                           //     });
-//                           //   },
-//                           //   child: Container(
-//                           //     margin: const EdgeInsets.symmetric(vertical: 10),
-//                           //     alignment: Alignment.bottomRight,
-//                           //     child: Text(
-//                           //       'Log Out',
-//                           //       style: GoogleFonts.poppins(
-//                           //         color: seccolor,
-//                           //         fontSize: 16,
-//                           //         fontWeight: FontWeight.w900,
-//                           //       ),
-//                           //     ),
-//                           //   ),
-//                           // ),
-//                         ],
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             )
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/Books/books.dart';
 import 'package:law_diary/Diary/daily_diary.dart';
-import 'package:law_diary/Note-Category/note-category.dart';
 import 'package:law_diary/common.dart';
 import 'package:law_diary/drawer.dart';
+import 'package:law_diary/localization/locales.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -309,9 +20,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleMenuButtonPressed() {
     _advancedDrawerController.showDrawer();
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return AdvancedDrawer(
       backdrop: Container(
         width: double.infinity,
@@ -336,9 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: const DrawerPage(),
       child: Scaffold(
-        backgroundColor: maincolor,
         appBar: AppBar(
-          backgroundColor: maincolor,
+          backgroundColor: subcolor,
           elevation: 0,
           leading: IconButton(
             color: darkmain,
@@ -357,343 +70,272 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        // drawer: const DrawerPage(),
-        body: SingleChildScrollView(
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.only(top: 0),
+        backgroundColor: subcolor,
+        body: Stack(
+          children: [
+            _buildBackgroundDecoration(),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * 0.04,
+                vertical: screenHeight * 0.03,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
+                  _buildHeader(context, screenWidth),
+                  SizedBox(height: screenHeight * 0.01),
+                  Divider(color: seccolor, thickness: 1),
+                  SizedBox(height: screenHeight * 0.01),
+                  _buildHorizontalScrollMenu(context, screenWidth),
+                  SizedBox(height: screenHeight * 0.02),
+                  _buildSectionTitle(
+                    LocaleData.features.getString(context),
+                    screenWidth,
                   ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
-                    child: Text(
-                      'Law & Crime',
-                      style: GoogleFonts.poppins(
-                        color: darkmain,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
-                    child: Text(
-                      'Foundations and Philosophy',
-                      style: GoogleFonts.poppins(
-                        color: fifthcolor,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    childAspectRatio: 0.85,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
+                  SizedBox(height: screenHeight * 0.015),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        _buildFeatureCard(
+                          context: context,
+                          screenWidth: screenWidth,
+                          image: Image.asset(
+                            'assets/icons/law.png',
+                            width: screenWidth * 0.12,
+                            height: screenWidth * 0.12,
+                          ),
+                          title: LocaleData.title.getString(context),
+                          subtitle: LocaleData.des1.getString(context),
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const DailyDiaryPage(),
                               ),
                             );
-                          });
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                          margin:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 13),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: darkmain,
-                            // boxShadow: [
-                            //   BoxShadow(
-                            //     color: Colors.black.withOpacity(0.4),
-                            //     spreadRadius: 1,
-                            //     blurRadius: 8,
-                            //   ),
-                            // ],
-                          ),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.01),
-                              Container(
-                                margin: EdgeInsets.all(10),
-                                child: Image.asset(
-                                  'images/diary.png',
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  width: MediaQuery.of(context).size.width * 0.3,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 8),
-                                child: Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'နေ့စဉ်မှတ်တမ်း',
-                                    style: GoogleFonts.poppins(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.05,
-                                      fontWeight: FontWeight.bold,
-                                      color: maincolor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Daily Diary',
-                                  style: GoogleFonts.poppins(
-                                    fontSize:
-                                        MediaQuery.of(context).size.width * 0.04,
-                                    color: Colors.white60,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          },
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const NoteCategoryScreen(),
-                              ),
-                            );
-                          });
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                          margin:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 13),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: darkmain,
-                            // boxShadow: [
-                            //   BoxShadow(
-                            //     color: Colors.black.withOpacity(0.4),
-                            //     spreadRadius: 1,
-                            //     blurRadius: 8,
-                            //   ),
-                            // ],
+                        SizedBox(height: screenHeight * 0.02),
+                        _buildFeatureCard(
+                          context: context,
+                          screenWidth: screenWidth,
+                          image: Image.asset(
+                            'assets/icons/law-book.png',
+                            width: screenWidth * 0.12,
+                            height: screenWidth * 0.12,
                           ),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.01),
-                              Container(
-                                margin: EdgeInsets.all(10),
-                                child: Image.asset(
-                                  'images/notes.png',
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  width: MediaQuery.of(context).size.width * 0.3,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 8),
-                                child: Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'မှတ်ချက်',
-                                    style: GoogleFonts.poppins(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.05,
-                                      fontWeight: FontWeight.bold,
-                                      color: maincolor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Notes',
-                                  style: GoogleFonts.poppins(
-                                    fontSize:
-                                        MediaQuery.of(context).size.width * 0.04,
-                                    color: Colors.white60,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
+                          title: LocaleData.books.getString(context),
+                          subtitle: LocaleData.des2.getString(context),
+                          onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const BooksScreen(),
                               ),
                             );
-                          });
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                          margin:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 13),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: darkmain,
-                            // boxShadow: [
-                            //   BoxShadow(
-                            //     color: Colors.black.withOpacity(0.4),
-                            //     spreadRadius: 1,
-                            //     blurRadius: 8,
-                            //   ),
-                            // ],
-                          ),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.01),
-                              Container(
-                                margin: EdgeInsets.all(10),
-                                child: Image.asset(
-                                  'images/books.png',
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  width: MediaQuery.of(context).size.width * 0.3,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 8),
-                                child: Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'ဥပဒေစာအုပ်များ',
-                                    style: GoogleFonts.poppins(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.05,
-                                      fontWeight: FontWeight.bold,
-                                      color: maincolor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Books',
-                                  style: GoogleFonts.poppins(
-                                    fontSize:
-                                        MediaQuery.of(context).size.width * 0.04,
-                                    color: Colors.white60,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          },
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                         
-                        },
-                        child: Container(
-                          padding:
-                              EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                          margin:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 13),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: darkmain,
-                            // boxShadow: [
-                            //   BoxShadow(
-                            //     color: Colors.black.withOpacity(0.4),
-                            //     spreadRadius: 1,
-                            //     blurRadius: 8,
-                            //   ),
-                            // ],
-                          ),
-                          child: Column(
-                            children: [
-                              SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.01),
-                              Container(
-                                margin: EdgeInsets.all(10),
-                                child: Image.asset(
-                                  'images/blank.png',
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  width: MediaQuery.of(context).size.width * 0.3,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 8),
-                                child: Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'စုံစမ်းရန်',
-                                    style: GoogleFonts.poppins(
-                                      fontSize:
-                                          MediaQuery.of(context).size.width *
-                                              0.05,
-                                      fontWeight: FontWeight.bold,
-                                      color: maincolor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  '09123456789',
-                                  style: GoogleFonts.poppins(
-                                    fontSize:
-                                        MediaQuery.of(context).size.width * 0.04,
-                                    color: Colors.white60,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.all(screenWidth * 0.04),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(255, 222, 197, 174),
+            border: Border(
+              top: BorderSide(color: seccolor, width: 1),
+            ),
           ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: screenHeight * 0.01),
+              Text(
+                "Powered by Law Diary",
+                style: GoogleFonts.poppins(
+                  color: seccolor,
+                  fontSize: screenWidth * 0.035,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, double screenWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          LocaleData.title.getString(context),
+          style: GoogleFonts.poppins(
+            color: darkmain,
+            fontSize: screenWidth * 0.06,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: screenWidth * 0.02),
+        Text(
+          LocaleData.secTitle.getString(context),
+          style: GoogleFonts.poppins(
+            color: darkmain,
+            fontSize: screenWidth * 0.04,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureCard({
+    required BuildContext context,
+    required double screenWidth,
+    required Image image,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        child: Row(
+          children: [
+            image,
+            SizedBox(width: screenWidth * 0.04),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: screenWidth * 0.045,
+                      fontWeight: FontWeight.w600,
+                      color: darkmain,
+                    ),
+                  ),
+                  SizedBox(height: screenWidth * 0.01),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: screenWidth * 0.035,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios,
+                color: Colors.grey, size: screenWidth * 0.04),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, double screenWidth) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        color: darkmain,
+        fontSize: screenWidth * 0.05,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  Widget _buildBackgroundDecoration() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [subcolor, const Color.fromARGB(255, 222, 197, 174)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalScrollMenu(BuildContext context, double screenWidth) {
+    return SizedBox(
+      height: screenWidth * 0.25,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildQuickAccessTile(
+              icon: Icons.event_note,
+              label: "Diary",
+              screenWidth: screenWidth,
+            ),
+            _buildQuickAccessTile(
+              icon: Icons.book,
+              label: "Books",
+              screenWidth: screenWidth,
+            ),
+            _buildQuickAccessTile(
+              icon: Icons.language,
+              label: "Language",
+              screenWidth: screenWidth,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessTile({
+    required IconData icon,
+    required String label,
+    required double screenWidth,
+  }) {
+    return GestureDetector(
+      child: Container(
+        width: screenWidth * 0.2,
+        margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: screenWidth * 0.08, color: darkmain),
+            SizedBox(height: screenWidth * 0.02),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                fontWeight: FontWeight.w500,
+                color: darkmain,
+              ),
+            ),
+          ],
         ),
       ),
     );

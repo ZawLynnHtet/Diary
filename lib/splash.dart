@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:law_diary/API/api.dart';
-import 'package:law_diary/User/logregistertest.dart';
 import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
 import 'package:law_diary/User/logregister.dart';
@@ -14,52 +12,74 @@ class Splash extends StatefulWidget {
   State<Splash> createState() => _SplashState();
 }
 
-class _SplashState extends State<Splash> {
-  getToken() async {
+class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _animation = Tween<double>(begin: 0.3, end: 1.2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    startTimer();
+    getToken();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final getToken = prefs.getString('token');
-    final getuserid = prefs.getString('userId');
+    final getuserid = prefs.getString('userid');
     final getemail = prefs.getString('email');
     final getname = prefs.getString('name');
+    final getpassword = prefs.getString('password');
+
     token = getToken.toString();
-    userID = getuserid.toString();
+    userid = getuserid.toString();
     email = getemail.toString();
     name = getname.toString();
+    password = getpassword.toString();
     setState(() {});
   }
 
-  startTimer() async {
+  void startTimer() async {
     var duration = const Duration(seconds: 2);
-    return Timer(duration, route);
+    Timer(duration, route);
   }
 
-  route() async {
+  void route() {
     if (token == 'null') {
       token = '';
-      userID = "";
+      userid = "";
       email = "";
       name = "";
-      return Navigator.pushReplacement(
+      password = "";
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const LogRegister(),
         ),
       );
     } else {
-      return Navigator.pushReplacement(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const HomeScreen(),
         ),
       );
     }
-  }
-
-  @override
-  void initState() {
-    startTimer();
-    getToken();
-    super.initState();
   }
 
   @override
@@ -71,30 +91,20 @@ class _SplashState extends State<Splash> {
       child: Scaffold(
         backgroundColor: thirdcolor,
         body: Center(
-          child: Image.asset(
-            "images/lawdiary.png",
-            width: 250,
-            height: 250,
+          child: AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _animation.value,
+                child: Image.asset(
+                  "images/law_bg.png",
+                  width: 250,
+                  height: 250,
+                ),
+              );
+            },
           ),
         ),
-        persistentFooterButtons: [
-          // Center(
-          //   child: Image.network(
-          //     'https://cdn-icons-gif.flaticon.com/15571/15571090.gif',
-          //     width: 50,
-          //     height: 50,
-          //   ),
-          // ),
-        ],
-        // persistentFooterButtons: [
-        //   Center(
-        //     child: Image.asset(
-        //       "images/car.gif",
-        //       width: 90,
-        //       height: 90,
-        //     ),
-        //   ),
-        // ],
       ),
     );
   }

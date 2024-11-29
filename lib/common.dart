@@ -29,9 +29,10 @@ Color btncolor = const Color.fromARGB(255, 219, 213, 213);
 
 var fcmtoken;
 String token = "";
-String userID = "";
+String userid = "";
 String email = "";
 String name = "";
+String password = "";
 
 void showToast(BuildContext context, msg, color) {
   final scaffold = ScaffoldMessenger.of(context);
@@ -69,7 +70,8 @@ void defaultCategoryName() async {
   final defCategory = jsonDecode(response.body);
   if (response.statusCode == 200) {
     List<dynamic> jsonData = defCategory['data'];
-    List<Map<String, dynamic>> _defCategories = jsonData.cast<Map<String, dynamic>>();
+    List<Map<String, dynamic>> _defCategories =
+        jsonData.cast<Map<String, dynamic>>();
     await prefs.setString("defaultcategories", jsonEncode(_defCategories));
   } else if (response.statusCode != 200) {
     // handle error here

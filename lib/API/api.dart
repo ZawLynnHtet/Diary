@@ -7,16 +7,16 @@ import 'package:law_diary/common.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // const domain = "https://tmm.tastysoft.co";
-const domain = "http://192.168.1.18:8080";
+const domain = "http://192.168.1.17:8080";
 
 class API {
   loginUser(email, password) async {
     final prefs = await SharedPreferences.getInstance();
-    // String userId = prefs.getInt("userId").toString();
+    // String userid = prefs.getInt("userid").toString();
     try {
       var url = "$domain/lawdiary/users/login";
       var body = jsonEncode({
-        // "userId": userID,
+        // "userid": userid,
         'email': email,
         'password': password,
       });
@@ -59,9 +59,9 @@ class API {
     }
   }
 
-  updateUser(email, name, profile, userId) async {
+  updateUser(email, name, profile, userid) async {
     try {
-      var url = "$domain/api/v1/users/$userId";
+      var url = "$domain/api/v1/users/$userid";
       var body = jsonEncode({
         'email': email,
         'name': name,
@@ -85,7 +85,7 @@ class API {
   getAllDiariesApi() async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/lawdiary/diaries/getalldiaries/userid/$userID"),
+        Uri.parse("$domain/lawdiary/diaries/getalldiaries/userid/$userid"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -97,10 +97,11 @@ class API {
     }
   }
 
-  getSingleDiariesApi(String diaryId) async {
+  getAllDiariesWithCaseNumApi(casenum) async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/api/v1/diaries/$diaryId"),
+        Uri.parse(
+            "$domain/lawdiary/diaries/getalldiaries/userid/$userid/causenum?causenum=$casenum"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -112,27 +113,13 @@ class API {
     }
   }
 
-  getdiarydetails(String diaryId) async {
-    try {
-      String url = "$domain/api/v1/details/diaryId/$diaryId";
-      var response = await http.get(
-        Uri.parse(url),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer $token',
-        },
-      );
-      return response;
-    } catch (error) {
-      print(error.toString());
-    }
-  }
-
-  createDiaryApi(clientname, action, todo, causenum, appointment) async {
+  createDiaryApi(
+      previousdate, clientname, action, todo, causenum, appointment) async {
     try {
       var url = "$domain/lawdiary/diaries/creatediray";
       var body = jsonEncode({
-        "userid": userID,
+        "userid": userid,
+        "previousdate": previousdate,
         "clientname": clientname,
         "action": action,
         "todo": todo,
@@ -155,6 +142,31 @@ class API {
       print(
         error.toString(),
       );
+    }
+  }
+
+  editDiaryApi(id, clientname, action, todo, causenum, appointment) async {
+    try {
+      var url = "$domain/lawdiary/diaries/updatediary/$id";
+      var body = jsonEncode({
+        "clientname": clientname,
+        "action": action,
+        "todo": todo,
+        "causenum": causenum,
+        "appointment": appointment,
+      });
+      var response = await http.patch(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      print("00000000000${response.body}");
+      return response;
+    } catch (error) {
+      print(error.toString());
     }
   }
 
@@ -244,7 +256,7 @@ class API {
   getAllNotesApi(categoryId) async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/api/v1/notes/userId/$userID/categoryId/$categoryId"),
+        Uri.parse("$domain/api/v1/notes/userid/$userid/categoryId/$categoryId"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -261,7 +273,7 @@ class API {
     try {
       var url = "$domain/api/v1/notes";
       var body = jsonEncode({
-        "userId": userID,
+        "userid": userid,
         "categoryId": categoryId,
         "title": title,
         "notes": notes,
@@ -306,7 +318,7 @@ class API {
     notes,
   ) async {
     try {
-      var url = "$domain/api/v1/notes/$userID/$noteId";
+      var url = "$domain/api/v1/notes/$userid/$noteId";
       var body = jsonEncode({"title": "$title", "notes": "$notes"});
 
       print(">>>>>>>>>>> update note url $url");
@@ -325,10 +337,10 @@ class API {
   }
 
   getAllNotesCategoryApi() async {
-    print(">>>>> user id $userID");
+    print(">>>>> user id $userid");
     try {
       var response = await http.get(
-        Uri.parse("$domain/api/v1/note-categories/userid/$userID"),
+        Uri.parse("$domain/api/v1/note-categories/userid/$userid"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -345,7 +357,7 @@ class API {
     try {
       var url = "$domain/api/v1/note-categories";
       var body = jsonEncode({
-        "userId": userID,
+        "userid": userid,
         "categoryName": categoryName,
       });
       print(">>>>>>>>>>> create notecategory url $url");
@@ -387,7 +399,7 @@ class API {
     categoryName,
   ) async {
     try {
-      var url = "$domain/api/v1/note-categories/$userID/$id";
+      var url = "$domain/api/v1/note-categories/$userid/$id";
       var body = jsonEncode({"categoryName": "$categoryName"});
       print(">>>>>>>>>>> update note category url $url");
       var response = await http.patch(
@@ -644,12 +656,12 @@ class API {
     }
   }
 
-  forgotPsw(email, userId) async {
+  forgotPsw(email, userid) async {
     try {
       var url = "$domain/api/v1/users/forgotPassword";
       var body = jsonEncode({
         'email': email,
-        'userId': userId,
+        'userid': userid,
       });
       print(body);
       print(url);
@@ -727,7 +739,7 @@ class API {
   getAllBooks() async {
     try {
       var response = await http.get(
-        Uri.parse("$domain/lawdiary/lawbooks/getallbooks/userid/$userID"),
+        Uri.parse("$domain/lawdiary/lawbooks/getallbooks/userid/$userid"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
@@ -739,16 +751,186 @@ class API {
     }
   }
 
-  getAllSections(bookid) async {
+  createTitle(title) async {
     try {
-      var response = await http.get(
-        Uri.parse("$domain/lawdiary/lawbooks/getallsections/bookid/$bookid"),
+      var url = "$domain/lawdiary/lawbooks/createtitle";
+      var body = jsonEncode({
+        "userid": userid,
+        "title": title,
+      });
+      print("++++++++++--------- $body");
+      print(">>>>>>>>>>> create diary url $url");
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      print("00000000000${response.body}");
+      return response;
+    } catch (error) {
+      print(
+        error.toString(),
+      );
+    }
+  }
+
+  editTitle(bookid, title) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/updatetitle/$bookid";
+      var body = jsonEncode({"title": "$title"});
+
+      print(">>>>>>>>>>> update note url $url");
+      var response = await http.patch(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  deleteTitle(bookid) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/deletetitle/$bookid";
+      var response = await http.delete(
+        Uri.parse(url),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
         },
       );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
 
+  createSection(bookid, sectionname) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/createsection";
+      var body = jsonEncode({
+        "bookid": bookid,
+        "sectionname": sectionname,
+      });
+      print("++++++++++--------- $body");
+      print(">>>>>>>>>>> create diary url $url");
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      print("00000000000${response.body}");
+      return response;
+    } catch (error) {
+      print(
+        error.toString(),
+      );
+    }
+  }
+
+  editSection(bookid, title) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/updatetitle/$bookid";
+      var body = jsonEncode({"title": "$title"});
+
+      print(">>>>>>>>>>> update note url $url");
+      var response = await http.patch(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  deleteSection(bookid) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/deletetitle/$bookid";
+      var response = await http.delete(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  createSubSection(bookid, sectionname) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/createsection";
+      var body = jsonEncode({
+        "bookid": bookid,
+        "sectionname": sectionname,
+      });
+      print("++++++++++--------- $body");
+      print(">>>>>>>>>>> create diary url $url");
+      var response = await http.post(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      print("00000000000${response.body}");
+      return response;
+    } catch (error) {
+      print(
+        error.toString(),
+      );
+    }
+  }
+
+  editSubSection(bookid, title) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/updatetitle/$bookid";
+      var body = jsonEncode({"title": "$title"});
+
+      print(">>>>>>>>>>> update note url $url");
+      var response = await http.patch(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: body,
+      );
+      return response;
+    } catch (error) {
+      print(error.toString());
+    }
+  }
+
+  deleteSubSection(bookid) async {
+    try {
+      var url = "$domain/lawdiary/lawbooks/deletetitle/$bookid";
+      var response = await http.delete(
+        Uri.parse(url),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+      );
       return response;
     } catch (error) {
       print(error.toString());

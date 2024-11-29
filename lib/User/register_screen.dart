@@ -254,21 +254,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     isLoading = true;
     final prefs = await SharedPreferences.getInstance();
     final response = await API().registerUser(
-      _emailController.text,
       _nameController.text,
+      _emailController.text,
       _passwordController.text,
     );
     var res = jsonDecode(response.body);
-    print('>>>>>>>>>userId>>>>>>>>>><${res['user']['userid']}');
+    print('>>>>>>>>>userid>>>>>>>>>><${res['user']['userid']}');
     if (response.statusCode == 200) {
-      token = res["token"];
-      userID = res['user']['userid'];
-      email = res['user']['email'];
-      name = res['user']['name'];
-      await prefs.setString("token", token.toString());
-      await prefs.setString("userId", userID.toString());
-      await prefs.setString('email', res['user']['email']);
-      await prefs.setString('name', res['user']['name']);
+      token = prefs.getString("token")!;
+      userid = prefs.getString("userid")!;
+      name = prefs.getString('name')!;
+      email = prefs.getString('email')!;
+      password = prefs.getString('password')!;
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.userid$userid');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.email$email');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.password$password');
+
 
       try {
         fcmtoken = await FirebaseMessaging.instance.getToken();

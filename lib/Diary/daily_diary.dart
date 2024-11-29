@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:law_diary/API/api.dart';
 import 'package:law_diary/API/model.dart';
 import 'package:law_diary/Diary/create_diary.dart';
+import 'package:law_diary/Diary/diary_details.dart';
 import 'package:law_diary/common.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:law_diary/localization/locales.dart';
 
 class DailyDiaryPage extends StatefulWidget {
   const DailyDiaryPage({super.key});
@@ -19,70 +21,125 @@ class DailyDiaryPage extends StatefulWidget {
 
 class _DailyDiaryPageState extends State<DailyDiaryPage> {
   List<diarylistmodel> mydiary = [];
+  List<diarylistmodel> filteredDiary = [];
   bool isLoading = false;
-  DateTime _selectedDate = DateTime.now();
-  Map<DateTime, List<diarylistmodel>> _diariesByDate = {};
+  bool hasError = false;
+  String errorMessage = '';
+  TextEditingController _dateController = TextEditingController();
 
   Future<void> getdiary() async {
     setState(() {
       isLoading = true;
+      hasError = false;
+      errorMessage = '';
     });
 
-    final response = await API().getAllDiariesApi();
-    final res = jsonDecode(response.body);
+    try {
+      final response = await API().getAllDiariesApi();
+      final res = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      List diaryList = res['data'];
-      setState(() {
-        mydiary = diaryList.map((diary) {
-          final diaryDate =
-              DateTime.parse(diary['appointment'] ?? DateTime.now().toString());
-          _diariesByDate[diaryDate] = [
-            ...(_diariesByDate[diaryDate] ?? []),
-            diarylistmodel(
+      if (response.statusCode == 200) {
+        List diaryList = res['data'];
+
+        setState(() {
+          mydiary = diaryList.map((diary) {
+            return diarylistmodel(
               diaryid: diary['diaryid'] ?? "",
               clientname: diary['clientname'] ?? "",
+              previousdate: diary['previousdate'] ?? "",
               action: diary['action'] ?? "",
               todo: diary["todo"] ?? "",
               causenum: diary["causenum"] ?? "",
               appointment: diary["appointment"] ?? "",
-            )
-          ];
-          return diarylistmodel(
-            diaryid: diary['diaryid'] ?? "",
-            clientname: diary['clientname'] ?? "",
-            action: diary['action'] ?? "",
-            todo: diary["todo"] ?? "",
-            causenum: diary["causenum"] ?? "",
-            appointment: diary["appointment"] ?? "",
-          );
-        }).toList();
-      });
-    } else {
-      showToast(context, res['message'], Colors.red);
-    }
+            );
+          }).toList();
 
+          filteredDiary = mydiary;
+        });
+      } else {
+        setState(() {
+          hasError = true;
+          errorMessage = res['message'];
+        });
+      }
+    } catch (e) {
+      setState(() {
+        hasError = true;
+        errorMessage = 'An error occurred while fetching data: $e';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _dateController.text = DateFormat('dd MMM yyyy').format(pickedDate);
+      });
+      filterDiaryByDate(pickedDate);
+    }
+  }
+
+  void filterDiaryByDate(DateTime selectedDate) {
     setState(() {
-      isLoading = false;
+      filteredDiary = mydiary.where((diary) {
+        String appointmentDate = diary.appointment;
+        DateTime? parsedDate = appointmentDate.isNotEmpty
+            ? DateTime.tryParse(appointmentDate)
+            : null;
+
+        if (parsedDate != null) {
+          return DateFormat('yyyy-MM-dd').format(parsedDate) ==
+              DateFormat('yyyy-MM-dd').format(selectedDate);
+        }
+        return false;
+      }).toList();
     });
   }
 
-  List<diarylistmodel> _getEventsForDay(DateTime day) {
-    return mydiary
-        .where((diary) =>
-            diary.appointment.isNotEmpty &&
-            DateFormat('yyyy-MM-dd')
-                    .format(DateTime.parse(diary.appointment)) ==
-                DateFormat('yyyy-MM-dd').format(day))
-        .toList();
+  bool isLandscape = false;
+
+  void toggleOrientation() {
+    if (isLandscape) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    }
+    setState(() {
+      isLandscape = !isLandscape;
+    });
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      getdiary();
-    });
+    getdiary();
+    _dateController.text = DateFormat("dd MMM yyyy").format(DateTime.now());
   }
 
   @override
@@ -90,175 +147,77 @@ class _DailyDiaryPageState extends State<DailyDiaryPage> {
     return Scaffold(
       backgroundColor: maincolor,
       appBar: AppBar(
-        backgroundColor: maincolor,
+        backgroundColor: subcolor,
         elevation: 0,
-        leading: BackButton(
-          color: darkmain,
-          onPressed: () {
-            Navigator.pop(
-              context,
-            );
-          },
-        ),
-        title: Text(
-          'ဆောင်ရွက်ဆဲအမှုစာရင်း',
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            color: darkmain,
-            fontWeight: FontWeight.bold,
+        centerTitle: true,
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(
+                context,
+              );
+            },
+            icon: Icon(
+              Icons.chevron_left_outlined,
+              color: maincolor,
+              size: 35,
+            )),
+        title: Container(
+          width: 155,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(10)),
+          child: TextField(
+            readOnly: true,
+            controller: _dateController,
+            style: TextStyle(color: maincolor),
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+                contentPadding: EdgeInsets.only(top: 3, left: 5),
+                filled: false,
+                border: InputBorder.none,
+                suffixIcon: Icon(
+                  Icons.expand_more_rounded,
+                  color: maincolor,
+                )),
+            onTap: () {
+              _selectDate(context);
+            },
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              isLandscape ? Icons.screen_lock_portrait : Icons.rotate_right,
+              color: maincolor,
+            ),
+            onPressed: toggleOrientation,
+          ),
+        ],
       ),
-      body: isLoading
-          ? SpinKitRing(
-              size: 23,
-              lineWidth: 3,
-              color: fifthcolor,
-            )
-          : mydiary.isEmpty
-              ? Center(
-                  child: Text(
-                    "Empty",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: fifthcolor,
-                    ),
-                  ),
-                )
-              : Column(
-                  children: [
-                    TableCalendar(
-                      locale: 'en-US',
-                      rowHeight: 60,
-                      focusedDay: _selectedDate,
-                      firstDay: DateTime(2000),
-                      lastDay: DateTime(2100),
-                      calendarFormat: CalendarFormat.month,
-                      availableGestures: AvailableGestures.all,
-                      selectedDayPredicate: (day) =>
-                          isSameDay(_selectedDate, day),
-                      onDaySelected: (selectedDay, focusedDay) {
-                        setState(() {
-                          _selectedDate = selectedDay;
-                        });
-                        // final diariesForSelectedDate =
-                        //     _getEventsForDay(selectedDay);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const CreateDiary()),
-                        );
-                      },
-                      calendarStyle: CalendarStyle(
-                        cellMargin:
-                            EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                        defaultTextStyle: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                        weekendTextStyle: TextStyle(
-                          fontSize: 16,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        selectedDecoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 10,
-                              offset: Offset(2, 2),
-                            ),
-                          ],
-                        ),
-                        todayDecoration: BoxDecoration(
-                          color: Colors.lightBlueAccent.withOpacity(0.3),
-                          shape: BoxShape.circle,
-                          border:
-                              Border.all(color: Colors.blueAccent, width: 2),
-                        ),
-                        markerDecoration: BoxDecoration(
-                          color: Colors.deepOrangeAccent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      headerStyle: HeaderStyle(
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                        titleTextStyle: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: darkmain,
-                        ),
-                        leftChevronIcon: Icon(
-                          Icons.chevron_left,
-                          color: darkmain,
-                          size: 32,
-                        ),
-                        rightChevronIcon: Icon(
-                          Icons.chevron_right,
-                          color: darkmain,
-                          size: 32,
-                        ),
-                      ),
-                      daysOfWeekStyle: DaysOfWeekStyle(
-                        weekdayStyle: TextStyle(
-                          fontSize: 16,
-                          color: Colors.blueGrey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
-                        weekendStyle: TextStyle(
-                          fontSize: 16,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      calendarBuilders: CalendarBuilders(
-                        markerBuilder: (context, day, events) {
-                          if (events.isNotEmpty) {
-                            return Positioned(
-                              bottom: 6,
-                              child: Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: Colors.deepOrangeAccent,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            );
-                          }
-                          return null;
-                        },
-                      ),
-                      eventLoader: (day) => _diariesByDate[day] ?? [],
-                    ),
-                    const SizedBox(height: 10.0),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'ဒိုင်ယာရီများ',
-                            style: TextStyle(
-                                color: darkmain,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold),
+      body: Column(
+        children: [
+          Expanded(
+            child: isLoading
+                ? SpinKitRing(
+                    size: 23,
+                    lineWidth: 3,
+                    color: fifthcolor,
+                  )
+                : filteredDiary.isEmpty
+                    ? Center(
+                        child: Text(
+                          LocaleData.emptymsg.getString(context),
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
                           ),
-                          Text(
-                            'အသေးစိတ်ကြည့်ရန်..',
-                            style: TextStyle(color: Colors.blue, fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Expanded(
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
@@ -271,178 +230,96 @@ class _DailyDiaryPageState extends State<DailyDiaryPage> {
                             headingTextStyle: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: darkmain,
+                              color: Colors.blueGrey,
                             ),
                             dataTextStyle: GoogleFonts.poppins(
                               fontSize: 15,
                               color: Colors.black87,
                             ),
-                            columnSpacing: 20,
+                            columnSpacing: 50,
                             horizontalMargin: 10,
-                            columns: const [
-                              DataColumn(label: Text("Client Name")),
-                              DataColumn(label: Text("Action")),
-                              DataColumn(label: Text("ToDo")),
-                              DataColumn(label: Text("No")),
-                              DataColumn(label: Text("Appointment")),
-                              DataColumn(label: Text("Edit")),
-                              DataColumn(label: Text("Delete")),
+                            headingRowHeight: 45,
+                            dataRowHeight: 80,
+                            columns: [
+                              DataColumn(
+                                  label: Text(LocaleData.previousdate
+                                      .getString(context))),
+                              DataColumn(
+                                  label: Text(
+                                      LocaleData.caseNo.getString(context))),
+                              DataColumn(
+                                  label: Text(
+                                      LocaleData.client.getString(context))),
+                              DataColumn(
+                                  label: Text(
+                                      LocaleData.action.getString(context))),
+                              DataColumn(
+                                  label:
+                                      Text(LocaleData.todo.getString(context))),
+                              DataColumn(
+                                  label: Text(
+                                      LocaleData.nextdate.getString(context))),
                             ],
-                            rows: mydiary
-                                .map((diary) => DataRow(cells: [
-                                      DataCell(
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          child: Text(diary.clientname),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          child: Text(diary.action),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          child: Text(diary.todo),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          child: Text(diary.causenum),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          child: Text(
-                                            diary.appointment.isNotEmpty
-                                                ? DateFormat('yyyy-MM-dd')
-                                                    .format(DateTime.parse(
-                                                        diary.appointment))
-                                                : 'No Appointment',
-                                          ),
-                                        ),
-                                      ),
-                                      // Edit Button
-                                      DataCell(
-                                        IconButton(
-                                          icon: Icon(Icons.edit,
-                                              color: Colors.blue),
-                                          onPressed: () {
-                                            // TODO: Add edit functionality here
-                                            print(
-                                                'Edit diary: ${diary.diaryid}');
-                                          },
-                                        ),
-                                      ),
-                                      // Delete Button
-                                      DataCell(
-                                        IconButton(
-                                          icon: Icon(Icons.delete,
-                                              color: Colors.red),
-                                          onPressed: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) => AlertDialog(
-                                                title: Text(
-                                                  'Are you sure to Delete?',
-                                                  style: GoogleFonts.poppins(
-                                                      fontSize: 16),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                    child: Text(
-                                                      'No',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              fontSize: 15),
-                                                    ),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        deleteDiary(
-                                                            diary.diaryid);
-                                                      });
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                    child: Text(
-                                                      'Yes',
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              fontSize: 15,
-                                                              color:
-                                                                  Colors.red),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ]))
-                                .toList(),
+                            rows: filteredDiary.map((diary) {
+                              return DataRow(cells: [
+                                DataCell(onTap: () {
+                                  goToDetails(diary.causenum);
+                                },
+                                    Text(
+                                      diary.previousdate.isNotEmpty
+                                          ? DateFormat('yyyy-MM-dd').format(
+                                              DateTime.parse(
+                                                  diary.previousdate))
+                                          : '',
+                                    )),
+                                DataCell(onTap: () {
+                                  goToDetails(diary.causenum);
+                                }, Text(diary.causenum)),
+                                DataCell(onTap: () {
+                                  goToDetails(diary.causenum);
+                                }, Text(diary.clientname)),
+                                DataCell(onTap: () {
+                                  goToDetails(diary.causenum);
+                                }, Text(diary.action)),
+                                DataCell(onTap: () {
+                                  goToDetails(diary.causenum);
+                                }, Text(diary.todo)),
+                                DataCell(onTap: () {
+                                  goToDetails(diary.causenum);
+                                },
+                                    Text(
+                                      diary.appointment.isNotEmpty
+                                          ? DateFormat('yyyy-MM-dd').format(
+                                              DateTime.parse(diary.appointment))
+                                          : '',
+                                    )),
+                              ]);
+                            }).toList(),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
-        // backgroundColor: darkmain,
-        backgroundColor: darkmain,
-        foregroundColor: Colors.white,
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CreateDiary()),
+            MaterialPageRoute(builder: (context) => CreateDiary(onSave: getdiary,)),
           );
         },
-        child: Icon(Icons.add),
-        // label: Text('', style: GoogleFonts.poppins(color: seccolor)),
-        // icon: Icon(Icons.add, color: seccolor),
+        backgroundColor: subcolor,
+        foregroundColor: maincolor,
+        shape: CircleBorder(),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  deleteDiary(id) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final response = await API().deleteDiaryApi(id);
-    var res = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      print(
-          ">>>>>>>>>>> delete diary response statusCode ${response.statusCode}");
-      print(">>>>>>>>>>> delete diary response body ${response.body}");
-
-      print('>>>>>>>>>>>>>>>>>>>>>>>');
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const DailyDiaryPage(),
-        ),
-      );
-    } else if (response.statusCode == 400) {
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context);
-      // ignore: use_build_context_synchronously
-      showToast(context, res['message'], Colors.red);
-    }
-    //  Navigator.pop(context);
-    //   showToast('${result['returncode']}', 'red');
-    setState(() {});
+  goToDetails(casenum) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DiaryDetails(casenum: casenum)),
+    );
   }
 }

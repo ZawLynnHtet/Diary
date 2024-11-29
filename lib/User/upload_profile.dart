@@ -1,78 +1,86 @@
-import 'dart:convert';
 import 'dart:io';
+
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:law_diary/API/api.dart';
 import 'package:law_diary/common.dart';
-import 'package:law_diary/drawer.dart';
-import 'package:law_diary/home.dart';
 
-class UploadProfile extends StatefulWidget {
-  const UploadProfile({super.key});
-
+class UploadProfilePage extends StatefulWidget {
   @override
-  State<UploadProfile> createState() => _UploadProfileState();
+  _UploadProfilePageState createState() => _UploadProfilePageState();
 }
 
-class _UploadProfileState extends State<UploadProfile> {
-  final TextEditingController _emailController = TextEditingController();
+class _UploadProfilePageState extends State<UploadProfilePage> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  bool _obscureText = true;
   bool isLoading = false;
+  XFile? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
 
-  var imagefile;
-  var imagevalue;
-  ImagePicker picker = ImagePicker();
-
-  Future uploadFile() async {
-    isLoading = true;
-    XFile file = imagefile;
-    Reference ref =
-        FirebaseStorage.instance.ref().child("profile_images").child("$imagevalue.jpg");
-    print(">>>>>>> ref $ref");
-    final metadata = SettableMetadata(
-      contentType: 'image/jpeg',
-      customMetadata: {'picked-file-path': file.path},
-    );
-    print(">>>>>>> metadata $metadata");
-    var uploadTask = ref.putData(await file.readAsBytes(), metadata);
-    print(">>>>>>> uploadTask $uploadTask");
-    setState(() {
-      uploadTask.whenComplete(() async {
-        var imageURL = await ref.getDownloadURL();
-        print("><< image url $imageURL");
-        updateUser(imageURL);
+  _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
       });
-    });
+    }
   }
 
-  getImageFromGallery() async {
-    final XFile? pickedFile = (await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1000,
-      maxHeight: 1000,
-      imageQuality: 100,
-    ));
-    late XFile tem;
-    tem = pickedFile!;
-    imagefile = tem;
-    imagevalue = pickedFile.path;
-    setState(() {});
+  _captureImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
   }
 
-  getImageFromCamera() async {
-    final XFile? pickedFile = (await picker.pickImage(
-      source: ImageSource.camera,
-      maxWidth: 1000,
-      maxHeight: 1000,
-      imageQuality: 100,
-    ));
-    late XFile tem;
-    tem = pickedFile!;
-    imagefile = tem;
-    imagevalue = pickedFile.path;
-    setState(() {});
+  _uploadImage() async {
+    if (_selectedImage != null) {
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        XFile file = _selectedImage!;
+        Reference ref = FirebaseStorage.instance
+            .ref()
+            .child("images")
+            .child("${DateTime.now().millisecondsSinceEpoch}.jpg");
+        print(">>>>>>> ref $ref");
+
+        final metadata = SettableMetadata(
+          contentType: 'image/jpeg',
+          customMetadata: {'picked-file-path': file.path},
+        );
+        print(">>>>>>> metadata $metadata");
+
+        var uploadTask = ref.putData(await file.readAsBytes(), metadata);
+        print(">>>>>>> uploadTask $uploadTask");
+
+        await uploadTask.whenComplete(() async {
+          var imageURL = await ref.getDownloadURL();
+          print("><< image url $imageURL");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile uploaded successfully!')),
+          );
+        });
+      } catch (e) {
+        print("Upload failed: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Upload failed. Please try again.')),
+        );
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a profile picture.')),
+      );
+    }
   }
 
   @override
@@ -82,192 +90,170 @@ class _UploadProfileState extends State<UploadProfile> {
       appBar: AppBar(
         backgroundColor: thirdcolor,
         elevation: 0,
+        leading: BackButton(
+          color: maincolor,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
-      drawer: const DrawerPage(),
-      body: WillPopScope(
-        onWillPop: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-          );
-          return false;
+      body: GestureDetector(
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
         },
-        child: ListView(
-          children: [
-            const SizedBox(
-              height: 30,
-            ),
-            Center(
-              child: Stack(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      getImageFromGallery();
-                    },
-                    child: Container(
-                      width: 130,
-                      height: 130,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: maincolor),
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color: Colors.black.withOpacity(0.1),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 30),
+                child: Form(
+                  child: Column(
+                    children: [
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: _pickImage,
+                              child: CircleAvatar(
+                                radius: 80,
+                                backgroundColor: Colors.white,
+                                backgroundImage: _selectedImage != null
+                                    ? FileImage(File(_selectedImage!.path))
+                                    : null,
+                                child: _selectedImage == null
+                                    ? Icon(
+                                        Icons.person,
+                                        size: 80,
+                                        color: Colors.black,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 10,
+                              right: 10,
+                              child: GestureDetector(
+                                onTap: _captureImage,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.blue,
+                                  child: Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
-                          borderRadius: BorderRadius.circular(80)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(80),
-                        child: imagevalue == null
-                            ? Container(
-                                margin: EdgeInsets.all(10),
-                                child: Image.asset(
-                                  'images/userprofile.png',
-                                  height: 120,
-                                  width: 120,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Image.file(
-                                File(imagevalue),
-                                width: 100,
-                                fit: BoxFit.cover,
-                              ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 30),
+                      // Email Field
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: btncolor,
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: TextFormField(
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                hintText: name,
+                                border: InputBorder.none,
+                              ),
+                              controller: _nameController,
+                              // validator: (value) {
+                              //   return value!.isEmpty
+                              //       ? 'Please enter Name'
+                              //       : null;
+                              // },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: btncolor,
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 20),
+                            child: TextFormField(
+                              keyboardType: TextInputType.visiblePassword,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: email,
+                                suffixIcon: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _obscureText = !_obscureText;
+                                    });
+                                  },
+                                  child: Icon(_obscureText
+                                      ? Icons.visibility
+                                      : Icons.visibility_off),
+                                ),
+                              ),
+                              controller: _emailController,
+                              obscureText: _obscureText,
+                              // validator: (value) {
+                              //   return value!.isEmpty
+                              //       ? 'Please enter Email'
+                              //       : null;
+                              // },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Submit Button
+                      GestureDetector(
+                        onTap: () async {
+                          _uploadImage();
+                        },
+                        child: Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: btncolor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          margin: const EdgeInsets.only(left: 25, right: 25),
+                          child: Center(
+                            child: isLoading
+                                ? const SpinKitRing(
+                                    size: 23,
+                                    lineWidth: 3,
+                                    color: Colors.black,
+                                  )
+                                : Text(
+                                    'Save',
+                                    style: TextStyle(
+                                      color: seccolor,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30),
-              child: Form(
-                  child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: btncolor,
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: TextFormField(
-                          keyboardType: TextInputType.name,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter Name',
-                            border: InputBorder.none,
-                          ),
-                          controller: _nameController,
-                          validator: (value) {
-                            return value!.isEmpty ? 'Please enter Name?' : null;
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: btncolor,
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 20),
-                        child: TextFormField(
-                          keyboardType: TextInputType.name,
-                          decoration: const InputDecoration(
-                            hintText: 'Enter Email',
-                            border: InputBorder.none,
-                          ),
-                          controller: _emailController,
-                          validator: (value) {
-                            return value!.isEmpty
-                                ? 'Please enter Email?'
-                                : null;
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  GestureDetector(
-                    onTap: () async {
-                      if (_nameController.text == "") {
-                        showToast(context, "Enter Name", Colors.red);
-                      } else if (_emailController.text == "") {
-                        showToast(context, "Enter Email", Colors.red);
-                      } else {
-                        setState(() {
-                          uploadFile();
-                        });
-                      }
-                    },
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: btncolor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      margin: const EdgeInsets.only(left: 25, right: 25),
-                      child: Center(
-                        child: isLoading
-                            ? const SpinKitRing(
-                                size: 23,
-                                lineWidth: 3,
-                                color: Colors.black,
-                              )
-                            : Text(
-                                'Confirm',
-                                style: TextStyle(
-                                  color: seccolor,
-                                  fontSize: 15,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
-              )),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  updateUser(profile) async {
-    isLoading = true;
-    final response = await API().updateUser(
-      _emailController.text,
-      _nameController.text,
-      profile,
-      userID,
-    );
-    var res = jsonDecode(response.body);
-    showToast(context, res['message'],
-        res.statusCode == 200 ? Colors.green : Colors.red);
-    setState(() {
-      isLoading = false;
-    });
   }
 }

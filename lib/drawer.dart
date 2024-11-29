@@ -1,13 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:law_diary/API/api.dart';
 import 'package:law_diary/User/change_psw.dart';
 import 'package:law_diary/User/forgot-psw.dart';
+import 'package:law_diary/User/upload_profile.dart';
 import 'package:law_diary/common.dart';
 import 'package:law_diary/home.dart';
 import 'package:law_diary/User/logregister.dart';
+import 'package:law_diary/localization/locales.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DrawerPage extends StatefulWidget {
@@ -19,6 +22,16 @@ class DrawerPage extends StatefulWidget {
 
 class _DrawerPageState extends State<DrawerPage> {
   bool isLoading = false;
+  late FlutterLocalization _flutterLocalization;
+  late String _currentLocale;
+
+  @override
+  void initState() {
+    super.initState();
+    _flutterLocalization = FlutterLocalization.instance;
+    _currentLocale = _flutterLocalization.currentLocale!.languageCode;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -37,14 +50,11 @@ class _DrawerPageState extends State<DrawerPage> {
               ),
               currentAccountPicture: GestureDetector(
                 onTap: () {
-                  setState(() {
-                    // Navigator.pushReplacement(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => const UploadProfile(),
-                    //   ),
-                    // );
-                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => UploadProfilePage()),
+                  );
                 },
                 child: CircleAvatar(
                   child: ClipOval(
@@ -54,25 +64,8 @@ class _DrawerPageState extends State<DrawerPage> {
                         fontSize: 20,
                       ),
                     ),
-                    // child: Image.asset(
-                    //   'images/profile.jpg',
-                    //   height: 120,
-                    //   width: 120,
-                    //   fit: BoxFit.cover,
-                    // ),
                   ),
                 ),
-
-                // CircleAvatar(
-                //   child: ClipOval(
-                //     child: Image.asset(
-                //       'images/profile.jpg',
-                //       height: 120,
-                //       width: 120,
-                //       fit: BoxFit.cover,
-                //     ),
-                //   ),
-                // ),
               ),
               decoration: BoxDecoration(
                 color: Colors.transparent,
@@ -81,7 +74,7 @@ class _DrawerPageState extends State<DrawerPage> {
             GestureDetector(
               onTap: () {
                 setState(() {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const HomeScreen(),
@@ -95,9 +88,10 @@ class _DrawerPageState extends State<DrawerPage> {
                   color: maincolor,
                 ),
                 title: Text(
-                  'Home',
+                  LocaleData.home.getString(context),
                   style: GoogleFonts.poppins(
                     color: maincolor,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -105,7 +99,7 @@ class _DrawerPageState extends State<DrawerPage> {
             GestureDetector(
               onTap: () {
                 setState(() {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const ChangePsw(),
@@ -119,9 +113,10 @@ class _DrawerPageState extends State<DrawerPage> {
                   color: maincolor,
                 ),
                 title: Text(
-                  'Change Password',
+                  LocaleData.changePassword.getString(context),
                   style: GoogleFonts.poppins(
                     color: maincolor,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -144,7 +139,7 @@ class _DrawerPageState extends State<DrawerPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Are You sure to reset your password?",
+                            LocaleData.confirmResetPassword.getString(context),
                             style: TextStyle(
                               color: seccolor,
                               fontSize: 15,
@@ -162,7 +157,7 @@ class _DrawerPageState extends State<DrawerPage> {
                                   Navigator.pop(context);
                                 },
                                 child: Text(
-                                  "No",
+                                  LocaleData.no.getString(context),
                                   style: GoogleFonts.poppins(
                                     color: Colors.blue,
                                     fontSize: 14,
@@ -176,7 +171,7 @@ class _DrawerPageState extends State<DrawerPage> {
                                   setState(() {});
                                 },
                                 child: Text(
-                                  'Yes',
+                                  LocaleData.yes.getString(context),
                                   style: GoogleFonts.poppins(
                                     color: Colors.red,
                                     fontSize: 14,
@@ -198,11 +193,34 @@ class _DrawerPageState extends State<DrawerPage> {
                   color: maincolor,
                 ),
                 title: Text(
-                  'Forgot Password',
+                  LocaleData.forgotPassword.getString(context),
                   style: GoogleFonts.poppins(
                     color: maincolor,
+                    fontSize: 15,
                   ),
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: DropdownButton(
+                value: _currentLocale,
+                dropdownColor: subcolor, // Change this to your preferred color
+                style: TextStyle(
+                    color: seccolor), // Text color for the selected item
+                items: [
+                  DropdownMenuItem(
+                    value: "en",
+                    child: Text("English", style: TextStyle(color: maincolor)),
+                  ),
+                  DropdownMenuItem(
+                    value: "my",
+                    child: Text("မြန်မာ", style: TextStyle(color: maincolor)),
+                  ),
+                ],
+                onChanged: (value) {
+                  _setLocale(value);
+                },
               ),
             ),
             GestureDetector(
@@ -223,7 +241,7 @@ class _DrawerPageState extends State<DrawerPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Are You sure to Log Out?",
+                            LocaleData.confirmLogout.getString(context),
                             style: TextStyle(
                               color: seccolor,
                               fontSize: 15,
@@ -241,7 +259,7 @@ class _DrawerPageState extends State<DrawerPage> {
                                   Navigator.pop(context);
                                 },
                                 child: Text(
-                                  "No",
+                                  LocaleData.no.getString(context),
                                   style: GoogleFonts.poppins(
                                     color: Colors.blue,
                                     fontSize: 14,
@@ -254,7 +272,7 @@ class _DrawerPageState extends State<DrawerPage> {
                                   logout();
                                 },
                                 child: Text(
-                                  'Yes',
+                                  LocaleData.yes.getString(context),
                                   style: GoogleFonts.poppins(
                                     color: Colors.red,
                                     fontSize: 14,
@@ -276,9 +294,10 @@ class _DrawerPageState extends State<DrawerPage> {
                   color: maincolor,
                 ),
                 title: Text(
-                  'Log Out',
+                  LocaleData.logout.getString(context),
                   style: GoogleFonts.poppins(
                     color: maincolor,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -291,11 +310,11 @@ class _DrawerPageState extends State<DrawerPage> {
 
   logout() async {
     final response = await API().logoutUser(
-      userID,
+      userid,
     );
     var res = jsonDecode(response.body);
     if (response.statusCode == 200) {
-      print('>>>>>>>>>>>>>>>>>>>>>>>>.userId////####$userID');
+      print('>>>>>>>>>>>>>>>>>>>>>>>>.userid////####$userid');
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       setState(() {
@@ -315,12 +334,12 @@ class _DrawerPageState extends State<DrawerPage> {
   forgotPsw() async {
     final response = await API().forgotPsw(
       email,
-      userID,
+      userid,
     );
     var res = jsonDecode(response.body);
     if (response.statusCode == 200) {
       setState(() {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => const ForgotPsw(),
@@ -331,5 +350,19 @@ class _DrawerPageState extends State<DrawerPage> {
       // ignore: use_build_context_synchronously
       showToast(context, res['message'], Colors.red);
     }
+  }
+
+  void _setLocale(String? value) {
+    if (value == null) return;
+    if (value == "en") {
+      _flutterLocalization.translate("en");
+    } else if (value == "my") {
+      _flutterLocalization.translate("my");
+    } else {
+      return;
+    }
+    setState(() {
+      _currentLocale = value;
+    });
   }
 }

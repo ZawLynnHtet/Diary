@@ -1,16 +1,18 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_localization/flutter_localization.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:law_diary/API/api.dart';
 import 'package:law_diary/Diary/daily_diary.dart';
 import 'package:law_diary/common.dart';
+import 'package:law_diary/localization/locales.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateDiary extends StatefulWidget {
-  const CreateDiary({super.key});
+  final VoidCallback onSave;
+  CreateDiary({required this.onSave});
 
   @override
   State<CreateDiary> createState() => _CreateDiaryState();
@@ -21,359 +23,332 @@ class _CreateDiaryState extends State<CreateDiary> {
   final TextEditingController _actionController = TextEditingController();
   final TextEditingController _todoController = TextEditingController();
   final TextEditingController _causenumTypeController = TextEditingController();
-  final TextEditingController _appointmentController = TextEditingController();
+  final TextEditingController _nextController = TextEditingController();
+  final TextEditingController _previousController = TextEditingController();
+
+  DateTime defaultPreDate = DateTime.now();
 
   bool isLoading = false;
-  DateTime? picked;
 
-  // String pdffile = '';
-  // String pdfvalue = '';
-
-  // Future uploadFile() async {
-  //   isLoading = true;
-  //   if (pdffile.isNotEmpty) {
-  //     Reference ref =
-  //         FirebaseStorage.instance.ref().child('files').child(pdfvalue);
-  //     UploadTask uploadTask = ref.putFile(File(pdffile));
-
-  //     await uploadTask.whenComplete(() async {
-  //       print('PDF Uploaded');
-  //       var fileURL = await ref.getDownloadURL();
-  //       print(fileURL);
-  //       createDiary(fileURL);
-  //     });
-  //   }
-  // }
-
-  // Future selectFile() async {
-  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
-  //     type: FileType.custom,
-  //     allowedExtensions: ['pdf'],
-  //   );
-
-  //   if (result != null) {
-  //     setState(() {
-  //       pdfvalue = result.files.single.name;
-  //       pdffile = result.files.single.path!;
-  //       print(pdfvalue);
-  //       print(pdffile);
-  //     });
-  //   }
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _previousController.text = DateFormat('yyyy-MM-dd').format(defaultPreDate);
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: maincolor,
-      appBar: AppBar(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+        setState(() {});
+      },
+      child: Scaffold(
         backgroundColor: maincolor,
-        elevation: 0,
-        leading: BackButton(
-          color: darkmain,
-          onPressed: () {
+        appBar: AppBar(
+          backgroundColor: subcolor,
+          elevation: 0,
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                );
+              },
+              icon: Icon(
+                Icons.chevron_left_outlined,
+                color: maincolor,
+                size: 35,
+              )),
+          title: Text(
+            LocaleData.newcase.getString(context),
+            style: GoogleFonts.poppins(
+              fontSize: screenWidth * 0.045,
+              color: maincolor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: WillPopScope(
+          onWillPop: () async {
             Navigator.pop(
               context,
             );
+            return false;
           },
-        ),
-        title: Text(
-          'နေ့စဉ်မှတ်တမ်း',
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            color: darkmain,
-            fontWeight: FontWeight.bold,
+          child: GestureDetector(
+            onTap: () {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(screenWidth * 0.04),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      LocaleData.previousdate.getString(context),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.005),
+                    TextFormField(
+                      decoration: _buildInputDecoration(),
+                      readOnly: true,
+                      onTap: () {
+                        _selectDateForPrevious(context);
+                      },
+                      controller: _previousController,
+                    ),
+                    SizedBox(height: screenHeight * 0.01),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                LocaleData.caseNo.getString(context),
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.005),
+                              TextFormField(
+                                controller: _causenumTypeController,
+                                decoration: _buildInputDecoration(),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: screenWidth * 0.04),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                LocaleData.client.getString(context),
+                                style: TextStyle(
+                                  fontSize: screenWidth * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.005),
+                              TextFormField(
+                                controller: _clientnameController,
+                                decoration: _buildInputDecoration(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: screenHeight * 0.01),
+                    Text(
+                      LocaleData.action.getString(context),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.005),
+                    TextFormField(
+                      controller: _actionController,
+                      decoration: _buildInputDecoration(),
+                      maxLines: 3,
+                    ),
+                    SizedBox(height: screenHeight * 0.01),
+                    Text(
+                      LocaleData.todo.getString(context),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.005),
+                    TextFormField(
+                      controller: _todoController,
+                      decoration: _buildInputDecoration(),
+                      maxLines: 3,
+                    ),
+                    SizedBox(height: screenHeight * 0.01),
+                    Text(
+                      LocaleData.nextdate.getString(context),
+                      style: TextStyle(
+                        fontSize: screenWidth * 0.035,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.005),
+                    TextFormField(
+                      decoration: _buildInputDecoration(),
+                      readOnly: true,
+                      onTap: () {
+                        _selectDateForAppointment(context);
+                      },
+                      controller: _nextController,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 15,
-                bottom: 10,
-                left: 15,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: TextFormField(
-                  style: TextStyle(color: backcolor),
-                  keyboardType: TextInputType.name,
-                  decoration: InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    labelText: 'အမှုသည်',
-                    labelStyle: TextStyle(color: fifthcolor),
-                    // border: InputBorder.none,
-                  ),
-                  controller: _clientnameController,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 15,
-                bottom: 10,
-                left: 15,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: TextFormField(
-                  style: TextStyle(color: backcolor),
-                  keyboardType: TextInputType.name,
-                  decoration: InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    labelText: 'ဆောင်ရွက်ရန်',
-                    labelStyle: TextStyle(color: fifthcolor),
-                    // border: InputBorder.none,
-                  ),
-                  controller: _actionController,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 15,
-                bottom: 10,
-                left: 15,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: TextFormField(
-                  style: TextStyle(color: backcolor),
-                  keyboardType: TextInputType.name,
-                  decoration: InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    labelText: 'ဆောင်ရွက်ချက်',
-                    labelStyle: TextStyle(color: fifthcolor),
-                    // border: InputBorder.none,
-                  ),
-                  controller: _todoController,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 15,
-                bottom: 10,
-                left: 15,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: TextFormField(
-                  style: TextStyle(color: backcolor),
-                  keyboardType: TextInputType.name,
-                  decoration: InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    labelText: 'အမှုနံပါတ်',
-                    labelStyle: TextStyle(color: fifthcolor),
-                    // border: InputBorder.none,
-                  ),
-                  controller: _causenumTypeController,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                right: 15,
-                bottom: 10,
-                left: 15,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: TextFormField(
-                  onTap: () {
-                    _pickDateDialog();
-                  },
-                  style: TextStyle(color: backcolor),
-                  keyboardType: TextInputType.datetime,
-                  decoration: InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fifthcolor),
-                    ),
-                    labelText: 'ရုံးချိန်းရက်',
-                    labelStyle: TextStyle(color: fifthcolor),
-                    // border: InputBorder.none,
-                  ),
-                  controller: _appointmentController,
-                  validator: (value) {
-                    return value!.isEmpty
-                        ? 'Please Enter Appointment!'
-                        : null;
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            // pdfvalue != ""
-            //     ? Container(
-            //         color: darkmain,
-            //         margin: const EdgeInsets.only(left: 10, right: 10),
-            //         padding: const EdgeInsets.all(8.0),
-            //         width: MediaQuery.of(context).size.width,
-            //         child: Row(
-            //           children: [
-            //             Image.asset(
-            //               "images/pdfforview.png",
-            //               width: 20,
-            //               height: 20,
-            //             ),
-            //             SizedBox(
-            //               width: 10,
-            //             ),
-            //             Expanded(
-            //               child: Text(
-            //                 pdfvalue,
-            //                 overflow: TextOverflow.ellipsis,
-            //                 maxLines: 3,
-            //                 style: GoogleFonts.poppins(
-            //                   color: Colors.white,
-            //                   fontSize: 15,
-            //                 ),
-            //               ),
-            //             ),
-            //           ],
-            //         ),
-            //       )
-            //     : Container(),
-            // pdfvalue != ""
-            //     ? const SizedBox(
-            //         height: 15,
-            //       )
-            //     : Container(),
-            Row(
-              children: [
-                // const SizedBox(
-                //   width: 10,
-                // ),
-                // Expanded(
-                //   child: GestureDetector(
-                //     onTap: () {
-                //       selectFile();
-                //       setState(() {});
-                //     },
-                //     child: Container(
-                //       height: 50,
-                //       decoration: BoxDecoration(
-                //         borderRadius: BorderRadius.circular(6),
-                //         color: darkmain,
-                //       ),
-                //       child: Center(
-                //         child: Text(
-                //           'Select File',
-                //           style: GoogleFonts.poppins(
-                //             color: seccolor,
-                //             fontSize: 16,
-                //             fontWeight: FontWeight.w500,
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                const SizedBox(
-                  width: 30,
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      if (_clientnameController.text == "") {
-                        showToast(context, "အမှုသည်နာမည်ထည့်ပ!!", Colors.red);
-                      } else if (_actionController.text == "") {
-                        showToast(context, "ဆောင်ရွက်ရန်ထည့်ပါ", Colors.red);
-                      } else if (_todoController.text == "") {
-                        showToast(context, "ဆောင်ရွက်ချက်ထည့်ပါ", Colors.red);
-                      } else if (_causenumTypeController.text == "") {
-                        showToast(context, "အမှုနံပါတ်ထည့်ပါ", Colors.red);
-                      } else if (_appointmentController.text == "") {
-                        showToast(context, "ရုံးချိန်းရက်ထည့်ပါ", Colors.red);
-                      } else {
-                        setState(() {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DailyDiaryPage(),
-                            ),
-                          );
-                          createDiary();
-                        });
-                      }
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 10, right: 20),
+        persistentFooterButtons: [
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
                       child: Container(
                         height: 50,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: darkmain,
+                          border: Border.all(color: subcolor),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: isLoading
-                            ? const SpinKitRing(
-                                size: 23,
-                                lineWidth: 3,
-                                color: Colors.black,
-                              )
-                            : Center(
-                                child: Text(
-                                  'Create',
-                                  style: GoogleFonts.poppins(
-                                    color: seccolor,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Center(
+                            child: Text(
+                              LocaleData.cancel.getString(context),
+                              style: GoogleFonts.poppins(
+                                color: seccolor,
+                                fontSize: screenWidth * 0.04,
+                                fontWeight: FontWeight.w500,
                               ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: subcolor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            if (_previousController.text.isEmpty) {
+                              showToast(
+                                  context,
+                                  LocaleData.requiredPrevious
+                                      .getString(context),
+                                  Colors.red);
+                            } else if (_clientnameController.text.isEmpty) {
+                              showToast(
+                                  context,
+                                  LocaleData.requiredClient.getString(context),
+                                  Colors.red);
+                            } else if (_actionController.text.isEmpty) {
+                              showToast(
+                                  context,
+                                  LocaleData.requiredAction.getString(context),
+                                  Colors.red);
+                            } else if (_todoController.text.isEmpty) {
+                              showToast(
+                                  context,
+                                  LocaleData.requiredToDo.getString(context),
+                                  Colors.red);
+                            } else if (_causenumTypeController.text.isEmpty) {
+                              showToast(
+                                  context,
+                                  LocaleData.requiredCaseNo.getString(context),
+                                  Colors.red);
+                            } else if (_nextController.text.isEmpty) {
+                              showToast(
+                                  context,
+                                  LocaleData.requiredAppointment
+                                      .getString(context),
+                                  Colors.red);
+                            } else {
+                              createDiary();
+                            }
+                          },
+                          child: isLoading
+                              ? const SpinKitRing(
+                                  size: 23,
+                                  lineWidth: 3,
+                                  color: Colors.white,
+                                )
+                              : Center(
+                                  child: Text(
+                                    LocaleData.save.getString(context),
+                                    style: GoogleFonts.poppins(
+                                      color: maincolor,
+                                      fontSize: screenWidth * 0.04,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectDateForAppointment(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _nextController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
+    }
+  }
+
+  Future<void> _selectDateForPrevious(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _previousController.text = DateFormat('yyyy-MM-dd').format(picked);
+      });
+    }
+  }
+
+  InputDecoration _buildInputDecoration() {
+    return InputDecoration(
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.blue),
       ),
     );
   }
@@ -381,121 +356,31 @@ class _CreateDiaryState extends State<CreateDiary> {
   String diaryId = "";
 
   createDiary() async {
-    isLoading = true;
-    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isLoading = true;
+    });
+
     final response = await API().createDiaryApi(
+      _previousController.text,
       _clientnameController.text,
       _actionController.text,
       _todoController.text,
       _causenumTypeController.text,
-      _appointmentController.text,
+      _nextController.text,
     );
-    print("hererere");
-    var res = jsonDecode(response.body);
-    var data = res['data'];
-    print('+++++++++++++${data}');
 
-    diaryId = data['diaryId'];
-    print("========$diaryId");
-    // if (diaryId != '') {
-    //   createDetails(diaryId, pdffile);
-    // }
-    // createAttachment();
-    // print(
-    //     ">>>>>>>>>>> create diary response statusCode ${response.statusCode}");
-    // print(">>>>>>>>>>> create diary response body ${response.body}");
+    final res = jsonDecode(response.body);
+
     if (response.statusCode == 200) {
-      print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
-      token = res["token"];
-      await prefs.setString("token", token.toString());
-      print('>>>>>>>>>>>>>>>>>>>>>>>>.token$token');
-      print("herer 0--");
-      // ignore: use_build_context_synchronously
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const DailyDiaryPage(),
-        ),
-      );
-    } else if (response.statusCode == 500) {
+      if (context.mounted) {
+        widget.onSave();
+        Navigator.pop(
+          context,
+        );
+        showToast(context, res['message'], Colors.green);
+      }
+    } else {
       showToast(context, res['message'], Colors.red);
     }
-    setState(() {
-      isLoading = false;
-    });
   }
-
-  // createDetails(id, pdffile) async {
-  //   isLoading = true;
-  //   final response = await API().createDiaryDetailsApi(
-  //     id,
-  //     _startdateController.text,
-  //     _appointmentController.text,
-  //     _actionsController.text,
-  //     _toDoController.text,
-  //     _notesController.text,
-  //     pdffile,
-  //     fcmtoken,
-  //   );
-  //   print("hererere");
-  //   var res = jsonDecode(response.body);
-  //   print(
-  //       ">>>>>>>>>>> create diary response statusCode ${response.statusCode}");
-  //   print(">>>>>>>>>>> create diary response body ${response.body}");
-
-  //   if (response.statusCode == 200) {
-  //     print("herer 0--");
-  //     // ignore: use_build_context_synchronously
-  //     // Navigator.push(
-  //     //   context,
-  //     //   MaterialPageRoute(
-  //     //     builder: (context) => DailyDiary(
-  //     //       userId: widget.userId,
-  //     //     ),
-  //     //   ),
-  //     // );
-  //   } else if (response.statusCode == 500) {
-  //     showToast(context, res['message'], Colors.red);
-  //   }
-  //   setState(() {
-  //     isLoading = false;
-  //   });
-  //   setState(() {
-  //     isLoading = false;
-  //   });
-  // }
-
-  void _pickDateDialog() async {
-    picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1000),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        // _start_dateController.text = '${picked!.year} - ${picked!.month} ${picked!.day}';
-        _appointmentController.text = DateFormat('yyyy-MM-dd').format(picked!);
-      });
-    }
-  }
-
-  // void _DateDialog() async {
-  //   print("-------");
-  //   picked = await showDatePicker(
-  //     context: context,
-  //     initialDate: DateTime.now(),
-  //     firstDate: DateTime(1000),
-  //     lastDate: DateTime(2100),
-  //   );
-  //   print('-----++++++');
-  //   if (picked != null) {
-  //     print('00000000');
-  //     setState(() {
-  //       // _start_dateController.text = '${picked!.year} - ${picked!.month} ${picked!.day}';
-  //       _startdateController.text = DateFormat('yyyy-MM-dd').format(picked!);
-  //       print(_startdateController);
-  //     });
-  //   }
-  // }
 }

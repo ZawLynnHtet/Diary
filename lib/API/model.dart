@@ -4,6 +4,7 @@ import 'dart:convert';
 class diarylistmodel {
   String diaryid;
   String clientname;
+  String previousdate;
   String action;
   String todo;
   String causenum;
@@ -12,6 +13,7 @@ class diarylistmodel {
   diarylistmodel({
     required this.diaryid,
     required this.clientname,
+    required this.previousdate,
     required this.action,
     required this.todo,
     required this.causenum,
@@ -23,6 +25,7 @@ class diarylistmodel {
       diaryid: jsonData['diaryid'],
       // categoryId: jsonData['categoryId'],
       clientname: jsonData['clientname'],
+      previousdate: jsonData['previousdate'],
       action: jsonData['action'],
       todo: jsonData['todo'],
       causenum: jsonData['causenum'],
@@ -34,6 +37,7 @@ class diarylistmodel {
         'diaryid': music.diaryid,
         // 'categoryId': music.categoryId,
         'clientname': music.clientname,
+        'previousdate': music.previousdate,
         'action': music.action,
         'todo': music.todo,
         'causenum': music.causenum,
